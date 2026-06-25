@@ -1,0 +1,98 @@
+site_name: Bundle Installation Methods
+site_description: Every practical way to install and distribute a multi-component software bundle — with pros, cons, examples, and why major tools use curl | sh / irm | iex.
+site_url: https://krishna-exasol.github.io/bundle-installation-methods/
+repo_url: https://github.com/krishna-exasol/bundle-installation-methods
+repo_name: krishna-exasol/bundle-installation-methods
+edit_uri: edit/main/docs/
+
+theme:
+  name: material
+  icon:
+    repo: fontawesome/brands/github
+  palette:
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: teal
+      accent: cyan
+      toggle:
+        icon: material/weather-sunny
+        name: Switch to light mode
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: teal
+      accent: cyan
+      toggle:
+        icon: material/weather-night
+        name: Switch to dark mode
+  features:
+    - navigation.instant
+    - navigation.tracking
+    - navigation.sections
+    - navigation.top
+    - navigation.footer
+    - toc.follow
+    - search.suggest
+    - search.highlight
+    - content.code.copy
+    - content.tabs.link
+
+markdown_extensions:
+  - admonition
+  - attr_list
+  - md_in_html
+  - tables
+  - footnotes
+  - pymdownx.details
+  - pymdownx.superfences
+  - pymdownx.highlight:
+      anchor_linenums: true
+  - pymdownx.tabbed:
+      alternate_style: true
+  - pymdownx.emoji:
+      emoji_index: !!python/name:material.extensions.emoji.twemoji
+      emoji_generator: !!python/name:material.extensions.emoji.to_svg
+  - toc:
+      permalink: true
+
+plugins:
+  - search
+
+nav:
+  - Home: index.md
+  - Overview: 00-overview.md
+  - Decision guide: 01-decision-guide.md
+  - Comparison matrix: 02-comparison-matrix.md
+  - Methods:
+      - "Script pipe (curl|sh, irm|iex)": methods/script-pipe.md
+      - "Download → verify → run": methods/download-verify-run.md
+      - Homebrew: methods/homebrew.md
+      - Winget: methods/winget.md
+      - Scoop: methods/scoop.md
+      - Chocolatey: methods/chocolatey.md
+      - "Linux native (deb/rpm)": methods/linux-native-packages.md
+      - "Snap / Flatpak": methods/snap-flatpak.md
+      - "pip / pipx / uvx": methods/python-pip-pipx-uvx.md
+      - "npm / npx": methods/npm-npx.md
+      - "cargo / go / gem": methods/other-language-managers.md
+      - "Docker run / pull": methods/docker-run-pull.md
+      - Docker Compose: methods/docker-compose.md
+      - Docker socket bootstrap: methods/docker-socket-bootstrap.md
+      - "Helm / Kubernetes": methods/helm-kubernetes.md
+      - Native installers: methods/native-installers.md
+      - GitHub Releases (binaries): methods/github-releases-binaries.md
+      - Version managers: methods/version-managers.md
+      - IaC & cloud marketplace: methods/iac-cloud.md
+      - Source build: methods/source-build.md
+  - Cross-cutting:
+      - Security: cross-cutting/security.md
+      - Versioning & pinning: cross-cutting/versioning-pinning.md
+      - Idempotency & uninstall: cross-cutting/idempotency-uninstall.md
+      - Maturity roadmap: cross-cutting/maturity-roadmap.md
+  - Case study:
+      - Exasol bundle: case-studies/exasol-bundle.md
+  - Glossary: glossary.md
+
+extra:
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/krishna-exasol/bundle-installation-methods
