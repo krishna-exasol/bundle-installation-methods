@@ -4,7 +4,7 @@
 
 ### Every practical way to install &amp; distribute a multi-component software bundle — with how each works, an example, and honest **pros &amp; cons**.
 
-**[🌐 Open the interactive site →](https://krishna-exasol.github.io/bundle-installation-methods/)**
+**[🌐 Open the comparison site →](https://krishna-exasol.github.io/bundle-installation-methods/)**
 
 <sub>The site has the full comparison matrix, pros/cons cards for all 20 methods, and a featured breakdown of why major tools lead with <code>curl | sh</code> / <code>irm | iex</code>.</sub>
 
@@ -27,7 +27,7 @@ A **bundle** is a product made of several parts — a database, a server, a CLI 
 
 | | |
 |---|---|
-| 🌐 **Interactive site** | **<https://krishna-exasol.github.io/bundle-installation-methods/>** — matrix + pros/cons cards + the "why `irm`" feature |
+| 🌐 **Comparison site** | **<https://krishna-exasol.github.io/bundle-installation-methods/>** — matrix + pros/cons cards + the "why `irm`" feature |
 | 🧭 **Just need to choose?** | [Decision Guide](docs/01-decision-guide.md) — a decision tree + per-scenario picks |
 | 📊 **Comparing options?** | [Comparison Matrix](docs/02-comparison-matrix.md) — all 20 methods, scored side by side |
 | 📚 **New to the problem?** | [Overview](docs/00-overview.md) — what "bundle install" means + the judging axes |
