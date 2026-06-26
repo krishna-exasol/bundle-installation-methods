@@ -27,8 +27,36 @@ exasol-quickstart --with json-tables      # base + MCP + JSON Tables (planned)
 
 Python is the front door because the audience already has it, it runs the same on every OS, and it can *orchestrate* (detect OS, install the base, wire connections, start services) — which a bare package install or `docker run` cannot. A `curl … | sh` / `irm … | iex` one-liner can bootstrap the same tool for users who'd rather not touch Python directly.
 
-!!! success "Published on PyPI"
-    The command is **live**: [`exasol-quickstart`](https://pypi.org/project/exasol-quickstart/) is on PyPI (a `0.0.1` preview), so `pipx install exasol-quickstart` already resolves. Source: [github.com/krishna-exasol/exasol-quickstart](https://github.com/krishna-exasol/exasol-quickstart). It's the evolution of the `exasol-ai` and `exasol-personal-ai` bundles into one lower-prerequisite front door — the full platform-aware installer (per the graph below) is in progress.
+---
+
+## Try it today
+
+The tool is **published** — the [`exasol-quickstart`](https://pypi.org/project/exasol-quickstart/) name is live on PyPI and the source is at [github.com/krishna-exasol/exasol-quickstart](https://github.com/krishna-exasol/exasol-quickstart).
+
+=== "From PyPI"
+
+    ```bash
+    pipx install exasol-quickstart
+    exasol-quickstart --base nano-docker      # Exasol Nano + MCP, any OS with Docker
+    exasol-quickstart --dry-run               # show the plan, change nothing
+    ```
+
+=== "Latest from git"
+
+    ```bash
+    pipx install git+https://github.com/krishna-exasol/exasol-quickstart.git
+    exasol-quickstart --base nano-docker
+    ```
+
+After it comes up: database on `127.0.0.1:8563` (`sys` / `exasol`), MCP at `http://127.0.0.1:4896/mcp` — point your LLM client there. Stop with `docker rm -f exasol-quickstart`.
+
+!!! info "Release status"
+    | Version | What it does |
+    |---------|--------------|
+    | **`0.1.0`** *(current)* | Brings up **Exasol Nano + MCP server via Docker** on any OS (`--base nano-docker`); OS detection, base routing, `--dry-run`. |
+    | **next** | The per-OS **native bases** — Exasol **Personal** on macOS, Nano **`.run`** on Linux (no Docker) — plus **JSON Tables** (`--with json-tables`), exactly as the decision graph below describes. |
+
+    It's the evolution of the `exasol-ai` and `exasol-personal-ai` bundles into one lower-prerequisite front door. Future releases publish to PyPI automatically via GitHub Releases (Trusted Publishing).
 
 ---
 
