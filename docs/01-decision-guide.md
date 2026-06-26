@@ -21,7 +21,7 @@ flowchart TD
     P -->|No| D["★ Default: Script pipe<br/>curl | sh  ·  irm | iex"]
 
     class Mm,D best
-    classDef best fill:#1f7a5a,stroke:#3fb950,color:#fff;
+    classDef best fill:#dcfce7,stroke:#3fb950,color:#14532d;
 ```
 
 ## By scenario

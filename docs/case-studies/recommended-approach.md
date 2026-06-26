@@ -97,9 +97,9 @@ flowchart TD
 
     Docker --> Done(["Ready: DB + MCP :4896 + JSON Tables"])
     Mac --> Done
-    classDef ok fill:#1f7a5a,stroke:#3fb950,color:#fff;
-    classDef exp fill:#946200,stroke:#d29922,color:#fff;
-    classDef todo fill:#1c2330,stroke:#58a6ff,color:#fff;
+    classDef ok fill:#dbeafe,stroke:#3b82f6,color:#13294b;
+    classDef exp fill:#eaf2fb,stroke:#7aa7d9,color:#13294b;
+    classDef todo fill:#f1f5f9,stroke:#9fb3c8,color:#13294b;
 ```
 
 > **Works today, on every OS with Docker** — the bare `exasol-quickstart` brings up Nano + the `exasol/mcp-server` sidecar + **JSON Tables** (tested end-to-end, including ingest). **Without** Docker, macOS falls back to a native **Exasol Personal** VM (*experimental*); on Linux/Windows, Docker is the path today (a native Linux `.run` is on the roadmap).
