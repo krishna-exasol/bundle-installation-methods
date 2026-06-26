@@ -25,36 +25,19 @@ Python is the front door because the target audience already has it, it behaves 
 
 The tool is published on PyPI as [`exasol-quickstart`](https://pypi.org/project/exasol-quickstart/); the source is on [GitHub](https://github.com/krishna-exasol/exasol-quickstart).
 
-=== "Try it once"
+Pick the form that fits — **try it** (runs once, nothing installed) or **keep it** (installs the command for repeated use), with either `pipx` or `uv`:
 
-    Run it without installing anything:
+| | with `pipx` | with `uv` |
+|---|---|---|
+| **Try it once** | `pipx run exasol-quickstart` | `uvx exasol-quickstart` |
+| **Keep it** | `pipx install exasol-quickstart && exasol-quickstart` | `uv tool install exasol-quickstart && exasol-quickstart` |
 
-    ```bash
-    pipx run exasol-quickstart      # with pipx
-    uvx exasol-quickstart           # with uv
-    ```
-
-=== "Keep it"
-
-    Install the command so you can run it again later (recommended for repeated use and the `json-tables` subcommands):
-
-    ```bash
-    pipx install exasol-quickstart && exasol-quickstart      # with pipx
-    uv tool install exasol-quickstart && exasol-quickstart   # with uv
-    ```
-
-=== "Latest from git"
-
-    ```bash
-    pipx run --spec git+https://github.com/krishna-exasol/exasol-quickstart.git exasol-quickstart
-    ```
-
-The only universal prerequisite is **Python 3.9+ with `pipx`**. Once the stack is up: database on `127.0.0.1:8563` (`sys` / `exasol`), MCP at `http://127.0.0.1:4896/mcp`. Stop it with `docker rm -f exasol-quickstart-db exasol-quickstart-mcp exasol-quickstart-json-tables`.
+The only universal prerequisite is **Python 3.9+ with `pipx`** (or `uv`). Once the stack is up: database on `127.0.0.1:8563` (`sys` / `exasol`), MCP at `http://127.0.0.1:4896/mcp`. Stop it with `docker rm -f exasol-quickstart-db exasol-quickstart-mcp exasol-quickstart-json-tables`.
 
 !!! info "Release status"
     | Version | What it does |
     |---------|--------------|
-    | **`0.3.1`** *(current)* | The bare command **auto-selects per OS** and brings up the **full bundle — Nano (DB) + `exasol/mcp-server` + JSON Tables** — on any OS with Docker. **Tested end-to-end, including ingest.** |
+    | **`0.3.5`** *(current)* | The bare command **auto-selects per OS** and brings up the **full bundle — Nano (DB) + `exasol/mcp-server` + JSON Tables** — on any OS with Docker. **Tested end-to-end, including ingest.** |
     | next | The **no-Docker native bases** — Exasol **Personal** on macOS, Nano **`.run`** on Linux — are wired in and chosen when Docker is absent; the macOS path is **experimental, not yet validated**. |
 
     It's the evolution of the `exasol-ai` and `exasol-personal-ai` bundles into one lower-prerequisite front door. Releases publish to PyPI automatically via GitHub Releases (Trusted Publishing). The only universal prerequisite is **Python 3.9+ with `pipx`**.
