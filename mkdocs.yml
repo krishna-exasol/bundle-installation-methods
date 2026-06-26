@@ -91,6 +91,7 @@ nav:
   - Case study:
       - The components: case-studies/components.md
       - "Nano + JSON Tables + MCP": case-studies/nano-jsontables-mcp.md
+      - "Personal + JSON Tables + MCP": case-studies/personal-jsontables-mcp.md
       - Exasol bundle: case-studies/exasol-bundle.md
   - Glossary: glossary.md
 
