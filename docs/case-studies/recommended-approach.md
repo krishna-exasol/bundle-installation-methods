@@ -17,37 +17,37 @@ So the design targets are, in priority order:
 
 ## The recommendation, in one line
 
-**A single Python-launched front-door command that detects the platform, installs the right Exasol base for that OS, and layers the requested add-ons — in one shot.**
+**A single Python-launched front-door command that detects the platform, provisions the right Exasol base for that OS, and layers the add-ons — in one shot.**
 
-```bash
-pipx install exasol-quickstart
-exasol-quickstart            # full bundle: DB + MCP + JSON Tables (no flags)
-```
-
-Python is the front door because the audience already has it, it runs the same on every OS, and it can *orchestrate* (detect OS, install the base, wire connections, start services) — which a bare package install or `docker run` cannot. A `curl … | sh` / `irm … | iex` one-liner can bootstrap the same tool for users who'd rather not touch Python directly.
-
----
+Python is the front door because the target audience already has it, it behaves identically on every operating system, and it can *orchestrate* — detect the OS, provision the base, wire up connections, and start services — which a bare package install or `docker run` cannot.
 
 ## Try it today
 
-The tool is **published** — the [`exasol-quickstart`](https://pypi.org/project/exasol-quickstart/) name is live on PyPI and the source is at [github.com/krishna-exasol/exasol-quickstart](https://github.com/krishna-exasol/exasol-quickstart).
+The tool is published on PyPI as [`exasol-quickstart`](https://pypi.org/project/exasol-quickstart/); the source is on [GitHub](https://github.com/krishna-exasol/exasol-quickstart).
 
-=== "From PyPI"
+=== "Try it once"
+
+    Run it without installing anything:
 
     ```bash
-    pipx install exasol-quickstart
-    exasol-quickstart            # full bundle: DB + MCP + JSON Tables (no flags)
-    exasol-quickstart --dry-run  # show the plan, change nothing
+    pipx run exasol-quickstart
+    ```
+
+=== "Keep it"
+
+    Install the command so you can run it again later (recommended for repeated use and the `json-tables` subcommands):
+
+    ```bash
+    pipx install exasol-quickstart && exasol-quickstart
     ```
 
 === "Latest from git"
 
     ```bash
-    pipx install git+https://github.com/krishna-exasol/exasol-quickstart.git
-    exasol-quickstart
+    pipx run --spec git+https://github.com/krishna-exasol/exasol-quickstart.git exasol-quickstart
     ```
 
-After it comes up: database on `127.0.0.1:8563` (`sys` / `exasol`), MCP at `http://127.0.0.1:4896/mcp` — point your LLM client there. Stop with `docker rm -f exasol-quickstart-db exasol-quickstart-mcp exasol-quickstart-json-tables`.
+The only universal prerequisite is **Python 3.9+ with `pipx`**. Once the stack is up: database on `127.0.0.1:8563` (`sys` / `exasol`), MCP at `http://127.0.0.1:4896/mcp`. Stop it with `docker rm -f exasol-quickstart-db exasol-quickstart-mcp exasol-quickstart-json-tables`.
 
 !!! info "Release status"
     | Version | What it does |
