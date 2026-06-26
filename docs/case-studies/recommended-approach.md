@@ -20,14 +20,15 @@ So the design targets are, in priority order:
 **A single Python-launched front-door command that detects the platform, installs the right Exasol base for that OS, and layers the requested add-ons — in one shot.**
 
 ```bash
-# illustrative — one command, picks the right base + add-ons for your OS
-pipx run exasol-quickstart                 # base + MCP server
-pipx run exasol-quickstart --with json-tables   # base + MCP + JSON Tables
+pipx install exasol-quickstart            # then run:  exasol-quickstart
+pipx run exasol-quickstart                # or zero-install
+exasol-quickstart --with json-tables      # base + MCP + JSON Tables (planned)
 ```
 
 Python is the front door because the audience already has it, it runs the same on every OS, and it can *orchestrate* (detect OS, install the base, wire connections, start services) — which a bare package install or `docker run` cannot. A `curl … | sh` / `irm … | iex` one-liner can bootstrap the same tool for users who'd rather not touch Python directly.
 
-> This is the **proposed unified installer** — the evolution of today's `exasol-ai` and `exasol-personal-ai` bundles into one lower-prerequisite front door. The mechanics below already exist in the components; what's new is unifying them behind one command.
+!!! success "Published on PyPI"
+    The command is **live**: [`exasol-quickstart`](https://pypi.org/project/exasol-quickstart/) is on PyPI (a `0.0.1` preview), so `pipx install exasol-quickstart` already resolves. Source: [github.com/krishna-exasol/exasol-quickstart](https://github.com/krishna-exasol/exasol-quickstart). It's the evolution of the `exasol-ai` and `exasol-personal-ai` bundles into one lower-prerequisite front door — the full platform-aware installer (per the graph below) is in progress.
 
 ---
 

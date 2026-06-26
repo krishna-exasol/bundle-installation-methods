@@ -35,21 +35,21 @@ With Personal the database lives **on the host**, so the clean way to satisfy th
 
 ## Recommended architecture
 
-```text
-┌──────────────────────────── macOS host ─────────────────────────────┐
-│                                                                      │
-│  exasol launcher ── provisions ──►  Exasol Personal DB               │
-│  (~/.local/bin)                     127.0.0.1:<dbPort>  sys/exasol    │
-│                                          ▲         ▲                  │
-│                                 localhost│         │localhost         │
-│                      ┌───────────────────┴──┐  ┌───┴────────────────┐ │
-│                      │ MCP Server (pipx venv)│  │ JSON Tables (venv  │ │
-│                      │ exasol-mcp-server-http│  │  + Rust toolchain) │ │
-│                      │ :4896                 │  │  cargo ingest      │ │
-│                      └───────────────────────┘  └────────────────────┘ │
-└──────────────────────────────────────────────────────────────────────┘
-        connection (dsn/port/password) discovered via `exasol info --json`
+```mermaid
+flowchart TB
+    subgraph host["macOS host"]
+        direction TB
+        L["exasol launcher<br/>~/.local/bin"]
+        DB[("Exasol Personal DB<br/>127.0.0.1 · dynamic dbPort · sys/exasol")]
+        MCP["MCP Server<br/>pipx venv · :4896"]
+        JT["JSON Tables<br/>venv + Rust"]
+        L -->|provisions| DB
+        MCP -->|localhost| DB
+        JT -->|localhost| DB
+    end
 ```
+
+_Connection (dsn / port / password) discovered via `exasol info --json`._
 
 ### How the hard constraints are handled
 

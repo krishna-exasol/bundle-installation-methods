@@ -24,19 +24,19 @@ Unlike the [Personal bundle](exasol-bundle.md) — where the database lives on t
 - **Nano ships the toolchain JSON Tables needs.** Its built-in **`python`** and **`rust`** stacks provide `python3` + `cargo`/`rustc` — exactly what JSON Tables requires at runtime (it shells out to `cargo run`, with no PyPI wheel). So JSON Tables can be a **custom stack** that depends on `python,rust`.
 - **One runtime, one network.** With all three inside Nano, every connection is `localhost`. That **eliminates the ingest reverse-connection caveat** (Exasol's HTTP transport connecting back to the JSON Tables client works trivially on the loopback) and removes any `host.docker.internal` plumbing.
 
-```text
-┌──────────────────── exasol/nano:latest (one container) ───────────────────┐
-│                                                                            │
-│   Exasol Core SQL engine            127.0.0.1:8563  (sys/exasol, TLS)      │
-│        ▲              ▲                                                     │
-│        │ localhost    │ localhost                                          │
-│   ┌────┴─────┐   ┌────┴──────────┐                                         │
-│   │ mcp stack│   │ json-tables   │   ← provisioned at first start          │
-│   │ :4896    │   │ stack (venv)  │     via --provision-stacks              │
-│   └──────────┘   └───────────────┘                                         │
-└────────────────────────────────────────────────────────────────────────────┘
-            exposed: 8563 (SQL) · 8443 (UI) · 4896 (MCP)
+```mermaid
+flowchart TB
+    subgraph nano["exasol/nano:latest — one container"]
+        direction TB
+        DB[("Exasol Core SQL engine<br/>127.0.0.1:8563 · sys/exasol · TLS")]
+        MCP["mcp-server stack · :4896"]
+        JT["json-tables stack · own venv"]
+        MCP -->|localhost| DB
+        JT -->|localhost| DB
+    end
 ```
+
+_Provisioned at first start via `--provision-stacks`. Exposed ports: **8563** (SQL) · **8443** (UI) · **4896** (MCP)._
 
 ### How the two hard constraints are handled
 

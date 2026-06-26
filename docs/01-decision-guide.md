@@ -4,24 +4,24 @@ You rarely pick **one** method forever. You pick a **primary** for now and a **r
 
 ## Decision tree
 
-```
-START
-  │
-  ├─ Is your product Kubernetes / cloud-native infra?
-  │     └─ YES → Helm chart + IaC modules (Terraform/OpenTofu) + cloud marketplace image
-  │
-  ├─ Is it a single self-contained binary (one language, no services)?
-  │     ├─ Going mainstream now? → Winget (Win) + Homebrew (mac/Linux) + GitHub Releases
-  │     └─ Just shipping fast?    → GitHub Releases binary + a script pipe wrapper
-  │
-  ├─ Is it MULTI-COMPONENT (DB + server + CLI, conflicting deps)?
-  │     └─ YES → Docker Compose, driven by a script-pipe installer   ★ the bundle case
-  │
-  ├─ Is it a Python/Node dev tool?
-  │     └─ pipx / uvx (Python) or npx (Node), plus a script pipe for non-devs
-  │
-  └─ Default for "one command, any OS, ship today"
-        → Script pipe (curl | sh  /  irm | iex)   ★ what most CLIs do first
+```mermaid
+flowchart TD
+    Start([Start]) --> K{"Kubernetes /<br/>cloud-native infra?"}
+    K -->|Yes| Kk["Helm chart + IaC modules<br/>+ cloud marketplace image"]
+    K -->|No| B{"Single self-contained<br/>binary?"}
+
+    B -->|"Yes — going mainstream"| Bm["Winget + Homebrew<br/>+ GitHub Releases"]
+    B -->|"Yes — ship fast"| Bf["GitHub Releases binary<br/>+ script-pipe wrapper"]
+    B -->|No| M{"Multi-component?<br/>DB + server + CLI,<br/>conflicting deps"}
+
+    M -->|Yes| Mm["★ Docker Compose,<br/>driven by a script-pipe installer"]
+    M -->|No| P{"Python / Node<br/>dev tool?"}
+
+    P -->|Yes| Pp["pipx / uvx (Python)<br/>or npx (Node)<br/>+ a script pipe for non-devs"]
+    P -->|No| D["★ Default: Script pipe<br/>curl | sh  ·  irm | iex"]
+
+    class Mm,D best
+    classDef best fill:#1f7a5a,stroke:#3fb950,color:#fff;
 ```
 
 ## By scenario
