@@ -5,9 +5,16 @@
 !!! abstract "At a glance"
     **One command** stands up Exasol + AI for the user:
 
+    *Try it* — nothing installed:
+
     ```bash
-    pipx run exasol-quickstart                            # try it — nothing installed
-    pipx install exasol-quickstart && exasol-quickstart   # keep it — run again later
+    pipx run exasol-quickstart
+    ```
+
+    *Keep it* — run it again later:
+
+    ```bash
+    pipx install exasol-quickstart && exasol-quickstart
     ```
 
     - **What you get** — an Exasol **database** (`:8563`), an **MCP server** (`:4896/mcp`) for LLM access, and **JSON Tables** (JSON → SQL).
@@ -38,12 +45,31 @@ Python is the front door because the target audience already has it, it behaves 
 
 The tool is published on PyPI as [`exasol-quickstart`](https://pypi.org/project/exasol-quickstart/); the source is on [GitHub](https://github.com/krishna-exasol/exasol-quickstart).
 
-Pick the form that fits — **try it** (runs once, nothing installed) or **keep it** (installs the command for repeated use), with either `pipx` or `uv`:
+Pick the form that fits — **try it** (runs once, nothing installed) or **keep it** (installs the command for repeated use). Each block has its own copy button.
 
-| | with `pipx` | with `uv` |
-|---|---|---|
-| **Try it once** | `pipx run exasol-quickstart` | `uvx exasol-quickstart` |
-| **Keep it** | `pipx install exasol-quickstart && exasol-quickstart` | `uv tool install exasol-quickstart && exasol-quickstart` |
+**▶️ Try it** — runs once, nothing installed:
+
+```bash
+pipx run exasol-quickstart
+```
+
+…or, with `uv`:
+
+```bash
+uvx exasol-quickstart
+```
+
+**📌 Keep it** — installs the command so you can run it again later:
+
+```bash
+pipx install exasol-quickstart && exasol-quickstart
+```
+
+…or, with `uv`:
+
+```bash
+uv tool install exasol-quickstart && exasol-quickstart
+```
 
 The only universal prerequisite is **Python 3.9+ with `pipx`** (or `uv`). Once the stack is up: database on `127.0.0.1:8563` (`sys` / `exasol`), MCP at `http://127.0.0.1:4896/mcp`. Stop it with `docker rm -f exasol-quickstart-db exasol-quickstart-mcp exasol-quickstart-json-tables`.
 
