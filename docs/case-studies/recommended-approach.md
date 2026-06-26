@@ -20,9 +20,8 @@ So the design targets are, in priority order:
 **A single Python-launched front-door command that detects the platform, installs the right Exasol base for that OS, and layers the requested add-ons — in one shot.**
 
 ```bash
-pipx install exasol-quickstart            # then run:  exasol-quickstart
-pipx run exasol-quickstart                # or zero-install
-exasol-quickstart --with json-tables      # base + MCP + JSON Tables (planned)
+pipx install exasol-quickstart
+exasol-quickstart            # full bundle: DB + MCP + JSON Tables (no flags)
 ```
 
 Python is the front door because the audience already has it, it runs the same on every OS, and it can *orchestrate* (detect OS, install the base, wire connections, start services) — which a bare package install or `docker run` cannot. A `curl … | sh` / `irm … | iex` one-liner can bootstrap the same tool for users who'd rather not touch Python directly.
@@ -37,26 +36,26 @@ The tool is **published** — the [`exasol-quickstart`](https://pypi.org/project
 
     ```bash
     pipx install exasol-quickstart
-    exasol-quickstart --base nano-docker      # Exasol Nano + MCP, any OS with Docker
-    exasol-quickstart --dry-run               # show the plan, change nothing
+    exasol-quickstart            # full bundle: DB + MCP + JSON Tables (no flags)
+    exasol-quickstart --dry-run  # show the plan, change nothing
     ```
 
 === "Latest from git"
 
     ```bash
     pipx install git+https://github.com/krishna-exasol/exasol-quickstart.git
-    exasol-quickstart --base nano-docker
+    exasol-quickstart
     ```
 
-After it comes up: database on `127.0.0.1:8563` (`sys` / `exasol`), MCP at `http://127.0.0.1:4896/mcp` — point your LLM client there. Stop with `docker rm -f exasol-quickstart`.
+After it comes up: database on `127.0.0.1:8563` (`sys` / `exasol`), MCP at `http://127.0.0.1:4896/mcp` — point your LLM client there. Stop with `docker rm -f exasol-quickstart-db exasol-quickstart-mcp exasol-quickstart-json-tables`.
 
 !!! info "Release status"
     | Version | What it does |
     |---------|--------------|
-    | **`0.1.1`** *(current)* | Brings up **Exasol Nano (DB) + the official `exasol/mcp-server` image as a sidecar**, via Docker, on any OS (`--base nano-docker`) — tested end-to-end. Plus OS detection, base routing, `--dry-run`. |
-    | **next** | **JSON Tables** as a sidecar (`--with json-tables`), then the per-OS **native bases** — Exasol **Personal** on macOS, Nano **`.run`** on Linux (no Docker) — per the decision graph below. |
+    | **`0.3.1`** *(current)* | The bare command **auto-selects per OS** and brings up the **full bundle — Nano (DB) + `exasol/mcp-server` + JSON Tables** — on any OS with Docker. **Tested end-to-end, including ingest.** |
+    | next | The **no-Docker native bases** — Exasol **Personal** on macOS, Nano **`.run`** on Linux — are wired in and chosen when Docker is absent; the macOS path is **experimental, not yet validated**. |
 
-    It's the evolution of the `exasol-ai` and `exasol-personal-ai` bundles into one lower-prerequisite front door. Future releases publish to PyPI automatically via GitHub Releases (Trusted Publishing).
+    It's the evolution of the `exasol-ai` and `exasol-personal-ai` bundles into one lower-prerequisite front door. Releases publish to PyPI automatically via GitHub Releases (Trusted Publishing). The only universal prerequisite is **Python 3.9+ with `pipx`**.
 
 ---
 
@@ -78,7 +77,7 @@ flowchart TD
     Side --> Done
 ```
 
-> **Ships today:** the **Windows / any-with-Docker** route — `exasol-quickstart --base nano-docker` brings up Nano + the `exasol/mcp-server` sidecar (tested). The **no-Docker native bases** (Personal on macOS, Nano `.run` on Linux, with host-process add-ons) are the roadmap.
+> **Ships today:** the **any-with-Docker** route — the bare `exasol-quickstart` brings up Nano + the `exasol/mcp-server` sidecar + **JSON Tables** (tested end-to-end, including ingest). The **no-Docker native bases** (Personal on macOS, Nano `.run` on Linux, with host-process add-ons) are selected when Docker is absent; the macOS path is experimental.
 
 **Why the base differs by OS** — the Exasol engine is Linux-native, so the *no-Docker* local option is different on each platform:
 
@@ -140,7 +139,7 @@ After the one command:
 
 - An **Exasol database** on `localhost` (`:8563`, `sys` / `exasol`).
 - The **MCP server** at `http://localhost:4896/mcp` — point Claude or any MCP client at it to talk to the database in natural language (read-only by default).
-- *(with `--with json-tables`)* the **JSON Tables** CLI to ingest JSON and query it as SQL.
+- the **JSON Tables** CLI (`exasol-quickstart json-tables …`) to ingest JSON and query it as SQL.
 
 …enough to actually *feel* what Exasol can do for AI/analytics in minutes.
 
@@ -151,8 +150,8 @@ After the one command:
 | Bundle | What you get | Best for | Pros | Cons |
 |--------|--------------|----------|------|------|
 | **Nano + MCP** *(ships today)* | DB + LLM access | Fast "talk to my DB" demo | Two published images (no build); nothing on the host but Docker | Docker required; no JSON ingest |
-| **Nano + JSON Tables** *(next)* | DB + JSON→SQL | JSON analytics demo | In-network ingest (shared Docker network); deps isolated | Docker required; JSON Tables sidecar builds from source |
-| **Nano + MCP + JSON Tables** *(next)* | DB + LLM + JSON | The complete "try Exasol for AI" | In-network; each tool its own container; no host deps | Docker required; first run builds the JSON Tables sidecar once |
+| **Nano + JSON Tables** | DB + JSON→SQL | JSON analytics demo | In-network ingest (shared Docker network); deps isolated | Docker required; JSON Tables sidecar builds from source |
+| **Nano + MCP + JSON Tables** *(ships today)* | DB + LLM + JSON | The complete "try Exasol for AI" | In-network; each tool its own container; no host deps | Docker required; first run builds the JSON Tables sidecar once |
 | **Personal + MCP** | Real Personal DB + LLM | Mac users who want *Personal* specifically | No Docker (native VM); real Personal experience | macOS-only; tools run as host processes |
 | **Personal + MCP + JSON Tables** | Personal + LLM + JSON | Full Mac experience | No Docker; ingest works (host localhost) | macOS-only; host needs Python + Rust |
 

@@ -2,10 +2,10 @@
 
 Same three-way bundle, but with **Exasol Personal** as the database instead of [Nano](nano-jsontables-mcp.md). That one swap changes the best method, because **Personal is not a container — it's a host launcher** that provisions a real Exasol DB (a managed VM locally on macOS Apple-Silicon, or a cloud instance via OpenTofu).
 
-!!! warning "Roadmap — not built yet"
-    This page describes the **planned macOS path** for the [`exasol-quickstart`](recommended-approach.md) front door. It is **not implemented in the tool yet** — today `exasol-quickstart` ships only the [Nano + MCP via Docker](nano-jsontables-mcp.md) path. This is the design we'll build for `exasol-quickstart --base personal` on macOS.
+!!! warning "Experimental — built, not yet validated"
+    This is the **macOS path** of [`exasol-quickstart`](recommended-approach.md): `exasol-quickstart --base personal` (auto-selected on macOS when Docker is absent). It is **implemented but not yet validated end-to-end** — the fully-tested path today is [Nano + MCP + JSON Tables via Docker](nano-jsontables-mcp.md). If the Personal path fails, fall back to Docker.
 
-!!! success "Recommendation (planned)"
+!!! success "Recommendation (experimental)"
     **The same `exasol-quickstart` command, co-locating everything on the host**: it lets the **Personal launcher** provide the database, then installs **MCP Server** and **JSON Tables** as **isolated host environments** ([pipx](../methods/python-pip-pipx-uvx.md) for MCP, a dedicated venv + Rust toolchain for JSON Tables) — all talking to the DB over `127.0.0.1`.
 
     ```bash
@@ -124,6 +124,6 @@ Both reduce to the same rule: **put JSON Tables wherever it shares `localhost` w
 
 ## In one sentence
 
-Because **Exasol Personal puts the database on the host**, the planned way to join Personal + JSON Tables + MCP is the one `exasol-quickstart` command **installing both tools as isolated host environments next to that DB** (pipx for MCP, a venv + Rust for JSON Tables), so ingest works on `localhost` and the `pyexasol` conflict is resolved without containers. (Roadmap — today the tool ships the [Nano + MCP via Docker](nano-jsontables-mcp.md) path.)
+Because **Exasol Personal puts the database on the host**, the way to join Personal + JSON Tables + MCP is the one `exasol-quickstart --base personal` command **installing both tools as isolated host environments next to that DB** (pipx for MCP, a venv + Rust for JSON Tables), so ingest works on `localhost` and the `pyexasol` conflict is resolved without containers. (Experimental — the fully-tested path today is the [Nano + Docker bundle](nano-jsontables-mcp.md).)
 
 **Related:** [Recommended approach](recommended-approach.md) · [The components](components.md) · [Nano + JSON Tables + MCP](nano-jsontables-mcp.md) · [pip / pipx / uvx](../methods/python-pip-pipx-uvx.md)

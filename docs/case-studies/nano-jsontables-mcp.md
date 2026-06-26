@@ -3,14 +3,15 @@
 The focused question: if the database is **Exasol Nano**, what is the best way to ship **Nano + JSON Tables + MCP Server** as one thing, and why?
 
 !!! success "Recommendation — works today (tested)"
-    A one-command installer that runs **published containers on a shared Docker network**: **Exasol Nano** (`exasol/nano:latest`, the database) + the official **`exasol/mcp-server:latest`** image (MCP sidecar) — and, for JSON, a **JSON Tables sidecar**. This is exactly what `exasol-quickstart --base nano-docker` does, verified end-to-end (MCP `/health` → 200):
+    A one-command installer that runs **published containers on a shared Docker network**: **Exasol Nano** (`exasol/nano:latest`, the database) + the official **`exasol/mcp-server:latest`** image (MCP sidecar) + a **JSON Tables sidecar** (built from source). This is exactly what the bare `exasol-quickstart` does on any OS with Docker — verified end-to-end, including ingest:
 
     ```bash
     pipx install exasol-quickstart
-    exasol-quickstart --base nano-docker
+    exasol-quickstart
     # creates a Docker network, then:
-    #   exasol/nano:latest          → DB on 127.0.0.1:8563 (sys/exasol)
-    #   exasol/mcp-server:latest     → MCP on 127.0.0.1:4896, EXA_DSN=<db>:8563
+    #   exasol/nano:latest             → DB on 127.0.0.1:8563 (sys/exasol)
+    #   exasol/mcp-server:latest        → MCP on 127.0.0.1:4896, EXA_DSN=<db>:8563
+    #   json-tables sidecar (built once) → exasol-quickstart json-tables …
     ```
 
     All containers share one Docker network, so MCP reaches the DB by service name and — when JSON Tables is added as a sidecar — its ingest reverse-connection works **in-network**.
@@ -69,7 +70,7 @@ Not required on the host: Python, Rust, or the tools themselves — they live in
 
 | Method | Verdict | Why |
 |--------|---------|-----|
-| **Published containers on a shared network** *(recommended, works today)* | ✅ | Nano + `exasol/mcp-server` (pull, no build) + a JSON Tables sidecar; in-network so ingest + service discovery just work; deps isolated per container. This is what `exasol-quickstart --base nano-docker` ships. |
+| **Published containers on a shared network** *(recommended, works today)* | ✅ | Nano + `exasol/mcp-server` (pull, no build) + a JSON Tables sidecar; in-network so ingest + service discovery just work; deps isolated per container. This is what the bare `exasol-quickstart` ships. |
 | **Single container via Nano stacks** | ⏳ Not yet | The cleanest end-state, but **`--provision-stacks` isn't in the public `exasol/nano:latest`** (verified). Revisit when Nano ships the stack system — see below. |
 | **Separate containers against a *host* DB** | ⚠️ | That's the *Personal* shape, where the reverse-connection caveat bites across the host/container boundary. With Nano the DB is itself a container, so keep everything in-network. |
 | **Bake the tools onto the Nano image** | ❌ | Nano's image is **distroless** — no shell to `RUN apt`/`pip`. Build-time baking is impossible. |
@@ -97,7 +98,7 @@ stack_provision() {
 Until then, the sidecar method is the recommendation.
 
 !!! note "Status"
-    **Tested:** `exasol-quickstart --base nano-docker` (0.1.1) brings up Nano + MCP via published images — MCP reports healthy. **Next:** wiring the **JSON Tables sidecar** into the same command (`--with json-tables`). The single-container **stack** path waits on the public Nano image.
+    **Tested (`exasol-quickstart` 0.3.1):** the bare command brings up Nano + MCP + the **JSON Tables sidecar** — MCP reports healthy and `ingest-and-wrap` succeeds end-to-end. The single-container **stack** path waits on the public Nano image.
 
 ---
 
