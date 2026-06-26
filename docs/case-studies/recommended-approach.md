@@ -30,7 +30,8 @@ The tool is published on PyPI as [`exasol-quickstart`](https://pypi.org/project/
     Run it without installing anything:
 
     ```bash
-    pipx run exasol-quickstart
+    pipx run exasol-quickstart      # with pipx
+    uvx exasol-quickstart           # with uv
     ```
 
 === "Keep it"
@@ -38,7 +39,8 @@ The tool is published on PyPI as [`exasol-quickstart`](https://pypi.org/project/
     Install the command so you can run it again later (recommended for repeated use and the `json-tables` subcommands):
 
     ```bash
-    pipx install exasol-quickstart && exasol-quickstart
+    pipx install exasol-quickstart && exasol-quickstart      # with pipx
+    uv tool install exasol-quickstart && exasol-quickstart   # with uv
     ```
 
 === "Latest from git"
