@@ -68,7 +68,7 @@ nav:
       - The components: case-studies/components.md
       - "Nano + JSON Tables + MCP": case-studies/nano-jsontables-mcp.md
       - "Personal + JSON Tables + MCP": case-studies/personal-jsontables-mcp.md
-      - Exasol bundle: case-studies/exasol-bundle.md
+      - "Exasol bundle (archive)": case-studies/exasol-bundle.md
   - Methods:
       - "Script pipe (curl|sh, irm|iex)": methods/script-pipe.md
       - "Download → verify → run": methods/download-verify-run.md

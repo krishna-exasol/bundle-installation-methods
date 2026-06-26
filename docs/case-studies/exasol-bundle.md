@@ -1,7 +1,11 @@
-# Case study: the Exasol AI bundle
+# Case study (archive): the original Exasol AI bundles
 
-!!! note "Scope"
-    This page documents the **earlier `exasol-ai` / `exasol-personal-ai` bundles**, which used a `curl | sh` / `irm | iex` **script-pipe installer**. The **current unified recommendation** is the single [`exasol-quickstart`](recommended-approach.md) front door (one `pipx install`). The analysis below still explains *why* the architecture is shaped the way it is.
+!!! warning "Archived — superseded by `exasol-quickstart`"
+    This page documents the **original `exasol-ai` and `exasol-personal-ai` bundles** — a `curl \| sh` / `irm \| iex` **script-pipe installer driving Docker Compose**, one per database (Nano and Personal).
+
+    They have since been **unified into a single front door: [`exasol-quickstart`](recommended-approach.md)** (`pipx run exasol-quickstart`). For the current recommendation, start there.
+
+    This page is kept for history — and because the **constraints it documents still drive the current design**: a dependency conflict that forces isolation, a distroless base, a runtime that shells out to Rust, and a database that connects *back* to the client.
 
 This is the real problem that motivated the catalog: package an Exasol database
 together with two companion tools into a **one-command install**. It's a useful

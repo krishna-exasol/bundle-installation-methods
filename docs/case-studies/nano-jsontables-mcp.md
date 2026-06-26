@@ -2,6 +2,9 @@
 
 The focused question: if the database is **Exasol Nano**, what is the best way to ship **Nano + JSON Tables + MCP Server** as one thing, and why?
 
+!!! abstract "At a glance"
+    **The database is a container**, so put everything in containers on one shared Docker network. `exasol-quickstart` (on any OS with Docker) runs **Exasol Nano + `exasol/mcp-server` + a JSON Tables sidecar** — *tested end-to-end, including ingest*. The single-container "stacks" idea is a **future** option, gated on the public Nano image (see [below](#the-future-one-container-via-nano-stacks)).
+
 !!! success "Recommendation — works today (tested)"
     A one-command installer that runs **published containers on a shared Docker network**: **Exasol Nano** (`exasol/nano:latest`, the database) + the official **`exasol/mcp-server:latest`** image (MCP sidecar) + a **JSON Tables sidecar** (built from source). This is exactly what the bare `exasol-quickstart` does on any OS with Docker — verified end-to-end, including ingest:
 
@@ -98,7 +101,7 @@ stack_provision() {
 Until then, the sidecar method is the recommendation.
 
 !!! note "Status"
-    **Tested (`exasol-quickstart` 0.3.1):** the bare command brings up Nano + MCP + the **JSON Tables sidecar** — MCP reports healthy and `ingest-and-wrap` succeeds end-to-end. The single-container **stack** path waits on the public Nano image.
+    **Tested (`exasol-quickstart` 0.3.x):** the bare command brings up Nano + MCP + the **JSON Tables sidecar** — MCP reports healthy and `ingest-and-wrap` succeeds end-to-end. The single-container **stack** path waits on the public Nano image.
 
 ---
 

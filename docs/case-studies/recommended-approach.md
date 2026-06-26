@@ -2,6 +2,19 @@
 
 > **The single best way to put "Exasol + AI add-ons" on a user's machine with one command — designed around end-user simplicity.**
 
+!!! abstract "At a glance"
+    **One command** stands up Exasol + AI for the user:
+
+    ```bash
+    pipx run exasol-quickstart                            # try it — nothing installed
+    pipx install exasol-quickstart && exasol-quickstart   # keep it — run again later
+    ```
+
+    - **What you get** — an Exasol **database** (`:8563`), an **MCP server** (`:4896/mcp`) for LLM access, and **JSON Tables** (JSON → SQL).
+    - **Only universal prerequisite** — Python 3.9+ with `pipx` (or `uv`). **Docker is per-OS, not universal.**
+    - **How it runs** — chosen automatically per OS: **containers** where Docker is present (Windows / Linux / any-with-Docker — *fully tested, including ingest*), or a **native VM** via Exasol Personal on macOS (*experimental*).
+    - **Where it lives** — published on PyPI as [`exasol-quickstart`](https://pypi.org/project/exasol-quickstart/) (`0.3.8`), built and released via Trusted Publishing.
+
 ## The goal
 
 The end user is a **data scientist or data analyst** who wants to *try Exasol* with as little setup as possible. This is a **promotion / adoption** play: the easier the first run, the more people experience what Exasol can do.
@@ -37,7 +50,7 @@ The only universal prerequisite is **Python 3.9+ with `pipx`** (or `uv`). Once t
 !!! info "Release status"
     | Version | What it does |
     |---------|--------------|
-    | **`0.3.5`** *(current)* | The bare command **auto-selects per OS** and brings up the **full bundle — Nano (DB) + `exasol/mcp-server` + JSON Tables** — on any OS with Docker. **Tested end-to-end, including ingest.** |
+    | **`0.3.8`** *(current)* | The bare command **auto-selects per OS** and brings up the **full bundle — Nano (DB) + `exasol/mcp-server` + JSON Tables** — on any OS with Docker. **Tested end-to-end, including ingest.** Try via `pipx run` / `uvx`, or keep via `pipx install`. |
     | next | The **no-Docker native bases** — Exasol **Personal** on macOS, Nano **`.run`** on Linux — are wired in and chosen when Docker is absent; the macOS path is **experimental, not yet validated**. |
 
     It's the evolution of the `exasol-ai` and `exasol-personal-ai` bundles into one lower-prerequisite front door. Releases publish to PyPI automatically via GitHub Releases (Trusted Publishing). The only universal prerequisite is **Python 3.9+ with `pipx`**.
