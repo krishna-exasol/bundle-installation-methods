@@ -1,6 +1,6 @@
 # The components — what each piece is
 
-The [Exasol bundle](exasol-bundle.md) combines a **database** with two companion tools. This page summarizes what each piece actually is — language, packaging, how it installs/runs, and the one constraint that matters for bundling. The database comes in two forms (**Nano** or **Personal**), so four components are described.
+The [Exasol bundle](exasol-ai.md) combines a **database** with two companion tools. This page summarizes what each piece actually is — language, packaging, how it installs/runs, and the one constraint that matters for bundling. The database comes in two forms (**Nano** or **Personal**), so four components are described.
 
 | Component | Role | What it is | Installs as | Key port(s) |
 |-----------|------|-----------|-------------|-------------|
@@ -72,4 +72,4 @@ Source: [github.com/exasol-labs/exasol-json-tables](https://github.com/exasol-la
 1. **Dependency conflict.** JSON Tables needs `pyexasol >=2.2,<3`; MCP Server needs `>=1,<2`. The ranges don't overlap, so the two tools **cannot share one Python environment** — they must be isolated (separate containers, or separate venvs/stacks).
 2. **JSON Tables' Rust-at-runtime coupling.** No wheel + `cargo run` at ingest means the runtime must carry a Rust toolchain — which Nano's `rust` stack happens to provide.
 
-See the [Exasol bundle](exasol-bundle.md) case study for how these drove the choice of a script-pipe installer over Docker Compose.
+See the [Exasol bundle](exasol-ai.md) case study for how these drove the choice of a script-pipe installer over Docker Compose.

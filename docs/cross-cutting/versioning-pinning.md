@@ -7,7 +7,7 @@ how to give users control over which they get.
 
 Examples use the catalog's case study: the Exasol Nano image, the JSON Tables git
 ref, and `exasol-mcp-server==1.10.1`. See the
-[case study](../case-studies/exasol-bundle.md) and the
+[case study](../case-studies/exasol-ai.md) and the
 [comparison matrix](../02-comparison-matrix.md).
 
 ## Container images: tag vs semver vs digest

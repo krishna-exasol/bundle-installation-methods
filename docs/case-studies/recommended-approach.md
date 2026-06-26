@@ -19,8 +19,8 @@
 
     - **What you get** — an Exasol **database** (`:8563`), an **MCP server** (`:4896/mcp`) for LLM access, and **JSON Tables** (JSON → SQL).
     - **Only universal prerequisite** — Python 3.9+ with `pipx` (or `uv`). **Docker is per-OS, not universal.**
-    - **How it runs** — chosen automatically per OS: **containers** where Docker is present (Windows / Linux / any-with-Docker — *fully tested, including ingest*), or a **native VM** via Exasol Personal on macOS (*experimental*).
-    - **Where it lives** — published on PyPI as [`exasol-quickstart`](https://pypi.org/project/exasol-quickstart/) (`0.3.12`), built and released via Trusted Publishing.
+    - **How it runs** — auto-selected **by OS**: **Windows** → Nano in Docker (*tested*); **macOS** → Exasol Personal native VM (*experimental*); **Linux** → Nano native (*roadmap* — use `--base nano-docker` for now).
+    - **Where it lives** — published on PyPI as [`exasol-quickstart`](https://pypi.org/project/exasol-quickstart/) (`0.3.14`), built and released via Trusted Publishing.
 
 ## The goal
 
@@ -76,48 +76,47 @@ The only universal prerequisite is **Python 3.9+ with `pipx`** (or `uv`). Once t
 !!! info "Release status"
     | Version | What it does |
     |---------|--------------|
-    | **`0.3.12`** *(current)* | The bare command **auto-selects per OS** and brings up the **full bundle — Nano (DB) + `exasol/mcp-server` + JSON Tables** — on any OS with Docker. **Tested end-to-end, including ingest.** Try via `pipx run` / `uvx`, or keep via `pipx install`. |
-    | next | The **no-Docker native bases** — Exasol **Personal** on macOS, Nano **`.run`** on Linux — are wired in and chosen when Docker is absent; the macOS path is **experimental, not yet validated**. |
+    | **`0.3.14`** *(current)* | The bare command **auto-selects the base by OS** — **Windows** → Nano (Docker), **macOS** → Exasol Personal, **Linux** → Nano native. The **Windows / Docker** bundle (Nano + MCP + JSON Tables) is **tested end-to-end, including ingest**. Try via `pipx run` / `uvx`, or keep via `pipx install`. |
+    | next | **Validate the macOS Personal path** end-to-end, and **build the Linux native `.run`** path. Until then, `--base nano-docker` runs the tested container bundle on macOS/Linux too. |
 
     It's the evolution of the `exasol-ai` and `exasol-personal-ai` bundles into one lower-prerequisite front door. Releases publish to PyPI automatically via GitHub Releases (Trusted Publishing). The only universal prerequisite is **Python 3.9+ with `pipx`**.
 
 ---
 
-## How it decides — the decision graph
+## How it decides — by operating system
 
-The choice is driven by **Docker availability**, not by OS. The Docker bundle works on **Windows, Linux, and macOS** alike (tested). Only the *no-Docker* native routes differ by OS.
+`exasol-quickstart` picks the **base by OS** — each platform's most native option — then layers MCP and JSON Tables on it. Docker availability does not change the choice; use `--base` to override (e.g. `--base nano-docker` to force the container bundle on any OS).
 
 ```mermaid
 flowchart TD
-    Start(["One command:<br/>pipx run exasol-quickstart"]) --> D{"Is Docker available?"}
+    Start(["One command:<br/>pipx run exasol-quickstart"]) --> OS{"Which OS?"}
 
-    D -->|"Yes — Windows · Linux · macOS"| Docker["Exasol Nano + MCP + JSON Tables<br/>as containers on a shared network"]:::ok
-    D -->|"No — macOS (Apple Silicon)"| Mac["Exasol Personal — native VM, no Docker<br/>add-ons via pipx + venv"]:::exp
-    D -->|"No — Linux / Windows"| Need["Start Docker — it's the path today<br/>(native Linux .run is on the roadmap)"]:::todo
+    OS -->|"Windows"| Win["Exasol Nano — in Docker<br/>+ MCP + JSON Tables (containers)"]:::ok
+    OS -->|"macOS (Apple Silicon)"| Mac["Exasol Personal — native VM, no Docker<br/>+ MCP (pipx) + JSON Tables (venv)"]:::exp
+    OS -->|"Linux"| Lin["Exasol Nano — native .run, no Docker<br/>(use --base nano-docker for now)"]:::todo
 
-    Docker --> Done(["Ready: DB + MCP :4896 + JSON Tables"])
+    Win --> Done(["Ready: DB + MCP :4896 + JSON Tables"])
     Mac --> Done
     classDef ok fill:#dbeafe,stroke:#3b82f6,color:#13294b;
     classDef exp fill:#eaf2fb,stroke:#7aa7d9,color:#13294b;
     classDef todo fill:#f1f5f9,stroke:#9fb3c8,color:#13294b;
 ```
 
-> **Works today, on every OS with Docker** — the bare `exasol-quickstart` brings up Nano + the `exasol/mcp-server` sidecar + **JSON Tables** (tested end-to-end, including ingest). **Without** Docker, macOS falls back to a native **Exasol Personal** VM (*experimental*); on Linux/Windows, Docker is the path today (a native Linux `.run` is on the roadmap).
+> **Status by OS** — **Windows** (Nano in Docker) is **tested end-to-end, including ingest**. **macOS** (Exasol Personal native VM) is **experimental — not yet validated**. **Linux** (native Nano `.run`) is **on the roadmap**; for now, run `exasol-quickstart --base nano-docker` to use the tested container bundle.
 
-**Why the Docker path is the default everywhere** — the Exasol engine is Linux-native, so running it in a container is the one approach that behaves identically on Windows, Linux, and macOS. The no-Docker alternatives are OS-specific and less mature.
+**Why the base differs by OS** — the Exasol engine is Linux-native, so the no-Docker local option differs per platform: macOS runs it in a native VM (Exasol Personal); Linux installs it natively from the `.run`; Windows has no native engine, so it runs Nano in Docker.
 
 ---
 
-## What runs, by situation
+## What runs, by OS
 
-| Situation | What runs | Docker? | Status |
-|-----------|-----------|---------|--------|
-| **Any OS with Docker** (Windows · Linux · macOS) | Exasol Nano + `exasol/mcp-server` + JSON Tables, as **sidecar containers** | ✅ Yes | ✅ **tested today** |
-| **macOS (Apple Silicon), no Docker** | **Exasol Personal** native VM; add-ons via `pipx` + venv on the host | ❌ No | 🧪 experimental |
-| **Linux, no Docker** | Exasol Nano native `.run`; add-ons as host processes | ❌ No | 🛣️ roadmap |
-| **Windows, no Docker** | — (no native Windows engine) | — | use Docker, or a cloud DB |
+| OS | Base | Add-ons | Docker? | Status |
+|----|------|---------|---------|--------|
+| **Windows** | Exasol Nano (Docker) | MCP + JSON Tables as **sidecar containers** | ✅ Yes | ✅ **tested** |
+| **macOS** (Apple Silicon) | **Exasol Personal** (native VM) | MCP via `pipx` + JSON Tables venv on the host | ❌ No | 🧪 experimental |
+| **Linux** | Exasol Nano (native `.run`) | host processes | ❌ No | 🛣️ roadmap |
 
-The Docker path uses **published images** (`exasol/nano:latest` + `exasol/mcp-server:latest`) on a shared network — no host Python/Rust needed. It is what `exasol-quickstart` auto-selects whenever Docker is present, on any OS.
+Any OS can force the tested **container bundle** with `exasol-quickstart --base nano-docker` (requires Docker) — published images (`exasol/nano` + `exasol/mcp-server`) plus a JSON Tables sidecar, no host Python/Rust needed.
 
 > **No-Docker Windows alternative:** point the same command at a **cloud** Exasol Personal deployment (needs a provider account). Good for browsing/querying, but JSON Tables *ingest* can't reverse-connect to a laptop from the cloud — see the [Personal case study](personal-jsontables-mcp.md#the-one-constraint-that-decides-everything).
 
@@ -206,9 +205,9 @@ After the one command:
 
 ---
 
-## Where this fits with the existing bundles
+## Where this fits with the original bundles
 
-- [`exasol-ai`](exasol-bundle.md) (Nano, Docker Compose) and `exasol-personal-ai` (Personal, two containers) are today's working implementations.
-- This page is the **target architecture**: native bases per OS (less Docker), add-ons as stacks/host-venvs, all behind **one Python command** — reliable, scalable, and as simple as possible for the user.
+- [`exasol-ai`](exasol-ai.md) (Nano, Docker Compose) and [`exasol-personal-ai`](exasol-personal-ai.md) (Personal, host launcher + containers) were the original, separate bundles — now archived case studies.
+- This page is the **unified front door** that replaced them: a native base **per OS**, add-ons as containers or host environments, all behind **one Python command** — reliable, scalable, and as simple as possible for the user.
 
 **Related:** [The components](components.md) · [Nano + JSON Tables + MCP](nano-jsontables-mcp.md) · [Personal + JSON Tables + MCP](personal-jsontables-mcp.md) · [Script pipe](../methods/script-pipe.md) · [pip / pipx / uvx](../methods/python-pip-pipx-uvx.md)

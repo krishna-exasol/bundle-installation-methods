@@ -89,4 +89,4 @@ maintenance to keep all of it green.
 
 The case study sits at Stage 1 today (script-pipe over Docker Compose) with a
 Stage 2/3 roadmap of pinned digests, checksummed releases, and eventual
-Homebrew/Winget — see the [case study](../case-studies/exasol-bundle.md).
+Homebrew/Winget — see the [case study](../case-studies/exasol-ai.md).

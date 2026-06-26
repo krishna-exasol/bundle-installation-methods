@@ -107,4 +107,4 @@ See the full scored [Comparison matrix](02-comparison-matrix.md), then the [Deci
 ---
 
 !!! note "Case study"
-    This catalog grew out of bundling Exasol components (Nano / Personal + MCP Server + JSON Tables) into a one-command install. See [why `curl | sh` + Docker Compose was chosen](case-studies/exasol-bundle.md).
+    This catalog grew out of bundling Exasol components (Nano / Personal + MCP Server + JSON Tables) into a one-command install. See [why `curl | sh` + Docker Compose was chosen](case-studies/exasol-ai.md).

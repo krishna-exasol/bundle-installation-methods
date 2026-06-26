@@ -6,7 +6,7 @@ fragile one: it is **safely re-runnable** (idempotent), and it offers a **clean,
 documented uninstall**. This page covers both.
 
 See also [versioning & pinning](versioning-pinning.md) for the upgrade path and
-the [case study](../case-studies/exasol-bundle.md) for a concrete `uninstall.sh`.
+the [case study](../case-studies/exasol-ai.md) for a concrete `uninstall.sh`.
 
 ## Why installers must be idempotent
 

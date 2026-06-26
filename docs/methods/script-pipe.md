@@ -11,7 +11,7 @@
 | **Maturity fit** | **MVP** (and kept forever as the zero-friction path) |
 | **Trust model** | The user runs code they have not read, fetched over HTTPS from a domain you control. Trust = your domain + TLS. |
 
-This is the method most modern CLIs lead with, and the one chosen for the [Exasol bundle](../case-studies/exasol-bundle.md).
+This is the method most modern CLIs lead with, and the one chosen for the [Exasol bundle](../case-studies/exasol-ai.md).
 
 ---
 

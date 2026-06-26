@@ -60,4 +60,4 @@ All methods, side by side. Scores are **1–5** (5 = best on that axis) and are 
 2. Re-weight the columns: an MVP weights *Friction / Ship-now / Orchestration*; a mature consumer product weights *Trust / Low-maint. / discoverability*.
 3. Pick the top **primary**, then add **one native path per OS** you care about. See the [Decision Guide](01-decision-guide.md) and [Maturity roadmap](cross-cutting/maturity-roadmap.md).
 
-For the worked example behind the bundle's choice (script pipe → Docker Compose), see the [Exasol case study](case-studies/exasol-bundle.md).
+For the worked example behind the bundle's choice (script pipe → Docker Compose), see the [Exasol case study](case-studies/exasol-ai.md).
