@@ -43,7 +43,11 @@ markdown_extensions:
   - tables
   - footnotes
   - pymdownx.details
-  - pymdownx.superfences
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
   - pymdownx.highlight:
       anchor_linenums: true
   - pymdownx.tabbed:
@@ -89,6 +93,7 @@ nav:
       - Idempotency & uninstall: cross-cutting/idempotency-uninstall.md
       - Maturity roadmap: cross-cutting/maturity-roadmap.md
   - Case study:
+      - "★ Recommended approach": case-studies/recommended-approach.md
       - The components: case-studies/components.md
       - "Nano + JSON Tables + MCP": case-studies/nano-jsontables-mcp.md
       - "Personal + JSON Tables + MCP": case-studies/personal-jsontables-mcp.md
