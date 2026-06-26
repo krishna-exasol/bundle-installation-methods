@@ -90,6 +90,7 @@ nav:
       - Maturity roadmap: cross-cutting/maturity-roadmap.md
   - Case study:
       - The components: case-studies/components.md
+      - "Nano + JSON Tables + MCP": case-studies/nano-jsontables-mcp.md
       - Exasol bundle: case-studies/exasol-bundle.md
   - Glossary: glossary.md
 
