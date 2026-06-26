@@ -1,5 +1,8 @@
 # Case study: the Exasol AI bundle
 
+!!! note "Scope"
+    This page documents the **earlier `exasol-ai` / `exasol-personal-ai` bundles**, which used a `curl | sh` / `irm | iex` **script-pipe installer**. The **current unified recommendation** is the single [`exasol-quickstart`](recommended-approach.md) front door (one `pipx install`). The analysis below still explains *why* the architecture is shaped the way it is.
+
 This is the real problem that motivated the catalog: package an Exasol database
 together with two companion tools into a **one-command install**. It's a useful
 case study because it hits almost every hard constraint a bundle can — a

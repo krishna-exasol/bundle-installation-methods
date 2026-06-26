@@ -2,11 +2,16 @@
 
 Same three-way bundle, but with **Exasol Personal** as the database instead of [Nano](nano-jsontables-mcp.md). That one swap changes the best method, because **Personal is not a container — it's a host launcher** that provisions a real Exasol DB (a managed VM locally on macOS Apple-Silicon, or a cloud instance via OpenTofu).
 
-!!! success "Recommendation"
-    **A one-command [script-pipe installer](../methods/script-pipe.md) that co-locates everything on the host**: let the **Personal launcher** provide the database, then install **MCP Server** and **JSON Tables** as **isolated host environments** ([pipx](../methods/python-pip-pipx-uvx.md) for MCP, a dedicated venv + Rust toolchain for JSON Tables) — all talking to the DB over `127.0.0.1`.
+!!! warning "Roadmap — not built yet"
+    This page describes the **planned macOS path** for the [`exasol-quickstart`](recommended-approach.md) front door. It is **not implemented in the tool yet** — today `exasol-quickstart` ships only the [Nano + MCP via Docker](nano-jsontables-mcp.md) path. This is the design we'll build for `exasol-quickstart --base personal` on macOS.
+
+!!! success "Recommendation (planned)"
+    **The same `exasol-quickstart` command, co-locating everything on the host**: it lets the **Personal launcher** provide the database, then installs **MCP Server** and **JSON Tables** as **isolated host environments** ([pipx](../methods/python-pip-pipx-uvx.md) for MCP, a dedicated venv + Rust toolchain for JSON Tables) — all talking to the DB over `127.0.0.1`.
 
     ```bash
-    curl -fsSL https://example.com/install.sh | sh
+    pipx install exasol-quickstart
+    exasol-quickstart --base personal        # macOS (Apple Silicon) — planned
+    #  under the hood:
     #  1. exasol install local            → DB on 127.0.0.1:<dbPort>
     #  2. exasol info --json               → discover dsn / port / password
     #  3. pipx install exasol-mcp-server   → MCP on :4896 (own venv)
@@ -15,7 +20,7 @@ Same three-way bundle, but with **Exasol Personal** as the database instead of [
 
     Co-locating the tools with the DB on `localhost` is the key move — it makes JSON Tables' bulk ingest work and removes the host/container boundary entirely.
 
-See [The components](components.md) for what each piece is.
+See [The components](components.md) for what each piece is, and the [Recommended approach](recommended-approach.md) for the single front door across all platforms.
 
 ---
 
@@ -57,9 +62,9 @@ _Connection (dsn / port / password) discovered via `exasol info --json`._
 2. **JSON Tables' Rust-at-runtime coupling**: install a host **Rust toolchain** (rustup) once; the venv builds the `cargo` ingest engine and runs it locally.
 3. **Dynamic connection**: the local DB port is assigned at deploy time, so the installer reads it from **`exasol info --json`** (+ `secrets.json` for the password) and injects it into both tools — never hardcoded.
 
-### Why a script pipe on top
+### Why the `exasol-quickstart` front door
 
-The [script-pipe installer](../methods/script-pipe.md) is what turns four manual steps into one line: install the launcher, ensure a local deployment exists, discover the connection, set up the two isolated environments, and start MCP — plus a `run-json-tables` helper and an uninstaller. It needs no registry approval and works as the single "Get started" command. (Note: Personal's **local** mode is macOS Apple-Silicon only; the launcher itself is cross-platform for cloud targets.)
+The [`exasol-quickstart`](recommended-approach.md) command is what would turn these four manual steps into one line: install the launcher, ensure a local deployment exists, discover the connection, set up the two isolated environments, and start MCP — plus a `run-json-tables` helper and an uninstaller. (Note: Personal's **local** mode is macOS Apple-Silicon only; the launcher itself is cross-platform for cloud targets.)
 
 ---
 
@@ -119,6 +124,6 @@ Both reduce to the same rule: **put JSON Tables wherever it shares `localhost` w
 
 ## In one sentence
 
-Because **Exasol Personal puts the database on the host**, the best way to join Personal + JSON Tables + MCP is a one-line script-pipe installer that **installs both tools as isolated host environments next to that DB** (pipx for MCP, a venv + Rust for JSON Tables), so ingest works on `localhost` and the `pyexasol` conflict is resolved without containers.
+Because **Exasol Personal puts the database on the host**, the planned way to join Personal + JSON Tables + MCP is the one `exasol-quickstart` command **installing both tools as isolated host environments next to that DB** (pipx for MCP, a venv + Rust for JSON Tables), so ingest works on `localhost` and the `pyexasol` conflict is resolved without containers. (Roadmap — today the tool ships the [Nano + MCP via Docker](nano-jsontables-mcp.md) path.)
 
-**Related:** [Script pipe](../methods/script-pipe.md) · [pip / pipx / uvx](../methods/python-pip-pipx-uvx.md) · [Source build](../methods/source-build.md) · [The components](components.md) · [Nano + JSON Tables + MCP](nano-jsontables-mcp.md)
+**Related:** [Recommended approach](recommended-approach.md) · [The components](components.md) · [Nano + JSON Tables + MCP](nano-jsontables-mcp.md) · [pip / pipx / uvx](../methods/python-pip-pipx-uvx.md)

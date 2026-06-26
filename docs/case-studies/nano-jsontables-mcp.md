@@ -46,7 +46,7 @@ _Host ports: **8563** (SQL) · **8443** (UI) · **4896** (MCP). MCP + DB are pub
 
 ### Why a one-command installer on top
 
-A bare `docker run` / compose file can't do prerequisite checks, port wiring, health waits, helper scripts, or uninstall. A thin [script-pipe](../methods/script-pipe.md) / Python front door ([`exasol-quickstart`](https://github.com/krishna-exasol/exasol-quickstart)) adds all of that — one line, any OS with Docker, ships today.
+A bare `docker run` / compose file can't do prerequisite checks, port wiring, health waits, helper scripts, or uninstall. The [`exasol-quickstart`](recommended-approach.md) front door adds all of that — one line, any OS with Docker, ships today.
 
 ---
 
