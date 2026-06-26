@@ -49,6 +49,30 @@ Nano's `--provision-stacks` does the heavy lifting, but a thin [script-pipe inst
 
 ---
 
+## End-user requirements
+
+The defining advantage of this method: the host needs **only a container runtime**. Python, Rust, the MCP server, and JSON Tables are all installed *inside* Nano's runtime by the stacks — the host stays clean.
+
+**Must have before installing:**
+
+| Requirement | Why | Notes |
+|-------------|-----|-------|
+| **Docker or Podman** | Runs the Nano container + its stacks | Rootless OK; Docker Desktop on Windows/macOS works (Nano is a Linux container) |
+| A supported host OS | To run the container runtime | Linux, macOS, or Windows; Nano image is `amd64` + `arm64` |
+| **~2–4 GB free RAM** and a few GB disk | DB engine + the `/exa` data volume | `--shm-size` ≥ 512 MB (1 GB recommended) |
+| **Free ports** 8563, 8443, 4896 | SQL, Web UI, MCP endpoint | (+ 8888/8866 if the Jupyter stack is enabled) |
+| **Internet on first start** | Pull the image; stacks install apt/pip packages, build the Rust engine | Subsequent starts are offline-capable (cached in `/exa`) |
+| `curl`+`sh` (mac/Linux) or `irm`+PowerShell (Windows) | To run the one-line installer | Both shells are in-box |
+
+**Provisioned automatically — NOT host prerequisites:**
+
+- :material-language-python: Python 3, :material-language-rust: Rust/`cargo`, the **MCP server** (`exasol-mcp-server`), and **JSON Tables** (built from source) — all installed inside the Nano runtime by the `python` / `rust` / `mcp-server` / `json-tables` stacks.
+
+!!! note "First-start cost"
+    The first `--provision-stacks` run is noticeably slower: it pulls the image, installs apt/pip packages, and **compiles the JSON Tables Rust engine once**. It's then cached in the `/exa` volume, so later starts are fast.
+
+---
+
 ## Why not the alternatives
 
 | Method | Verdict | Why |

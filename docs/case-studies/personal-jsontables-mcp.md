@@ -63,6 +63,33 @@ The [script-pipe installer](../methods/script-pipe.md) is what turns four manual
 
 ---
 
+## End-user requirements
+
+The trade-off vs the [Nano method](nano-jsontables-mcp.md) is inverted: here you need **no Docker**, but the tools run on the host, so the host must carry **Python and a Rust toolchain**.
+
+**Must have before installing (local / macOS):**
+
+| Requirement | Why | Notes |
+|-------------|-----|-------|
+| **macOS on Apple Silicon**, ≥ 8 GB RAM | Personal's `local` mode is gated to `darwin/arm64` | The launcher runs the DB in a managed VM |
+| **Xcode Command Line Tools** | C compiler/linker + `git` to build the JSON Tables Rust engine | `xcode-select --install` |
+| **Python 3.10+** | Runtime for both MCP and JSON Tables (separate venvs) | Ships with CLT / Homebrew |
+| **Rust toolchain** (`rustup` → `cargo`) | JSON Tables shells out to `cargo` at ingest | Installer can bootstrap it |
+| **`pipx`** | Isolates the MCP install from the JSON Tables venv | Installer can bootstrap it |
+| **`~/.local/bin` on `PATH`** | Where the `exasol` launcher installs | Add it if missing |
+| **Free ports**: DB port (~8563) + 4896 | SQL + MCP endpoint | DB port is assigned dynamically; discovered via `exasol info --json` |
+| **Disk + RAM for the VM** | Default ~100 GB data disk (configurable); ≥ 4 GB VM RAM | Plus the two small venvs |
+| **Internet access** | Launcher + VM image, pip packages, `cargo` crates, `git clone` | First `exasol install local` takes ~10–20 min |
+
+**Notably NOT required:** Docker/Podman — everything runs as host processes alongside the launcher's own VM.
+
+**Provisioned by the installer:** the `exasol` launcher, the local DB (`exasol install local`), the two isolated environments (`pipx` MCP + JSON Tables venv), and the connection wiring (discovered via `exasol info --json`).
+
+!!! warning "Cloud variant"
+    Pointing at a **cloud** Personal DB instead needs a provider account + credentials (AWS / Azure / Exoscale / STACKIT); OpenTofu is auto-downloaded. But the **ingest reverse connection generally can't reach your laptop** from a cloud DB — use `local` for ingest-heavy work, or run JSON Tables on a host the DB can reach.
+
+---
+
 ## Why not the alternatives
 
 | Method | Verdict | Why |
@@ -81,10 +108,10 @@ The existing `exasol-personal-ai` bundle implements the **two-container** shape 
 
 ## Nano vs Personal — the unifying principle
 
-| | Database is… | Best method | Why |
+| | Database is… | Best method | Host must have |
 |---|---|---|---|
-| **[Nano](nano-jsontables-mcp.md)** | a container with a stack system | extend Nano with **stacks** (built-in `mcp-server` + custom `json-tables`) | one runtime; localhost everywhere |
-| **Personal** *(this page)* | a host launcher | co-locate tools **on the host** (pipx/venv) | tools share `localhost` with the host DB |
+| **[Nano](nano-jsontables-mcp.md)** | a container with a stack system | extend Nano with **stacks** (built-in `mcp-server` + custom `json-tables`) | **Docker/Podman** only (Python+Rust live inside Nano) |
+| **Personal** *(this page)* | a host launcher | co-locate tools **on the host** (pipx/venv) | **Python + Rust** on the host (no Docker); macOS Apple-Silicon |
 
 Both reduce to the same rule: **put JSON Tables wherever it shares `localhost` with the database** — because of the HTTP-transport reverse connection. MCP, being outbound-only, is flexible either way.
 
