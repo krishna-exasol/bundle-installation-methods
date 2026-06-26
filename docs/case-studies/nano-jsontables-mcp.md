@@ -1,75 +1,67 @@
 # Joining Nano + JSON Tables + MCP — the recommended method
 
-This is the focused question: if the database is **Exasol Nano** (not Personal), what is the best way to ship **Nano + JSON Tables + MCP Server** as one thing, and why?
+The focused question: if the database is **Exasol Nano**, what is the best way to ship **Nano + JSON Tables + MCP Server** as one thing, and why?
 
-!!! success "Recommendation"
-    **A one-command [script-pipe installer](../methods/script-pipe.md) that runs Nano with its native stacks** — the **built-in `mcp-server` stack** plus a **custom `json-tables` stack** — so the entire bundle lives inside a single Nano runtime:
+!!! success "Recommendation — works today (tested)"
+    A one-command installer that runs **published containers on a shared Docker network**: **Exasol Nano** (`exasol/nano:latest`, the database) + the official **`exasol/mcp-server:latest`** image (MCP sidecar) — and, for JSON, a **JSON Tables sidecar**. This is exactly what `exasol-quickstart --base nano-docker` does, verified end-to-end (MCP `/health` → 200):
 
     ```bash
-    curl -fsSL https://example.com/install.sh | sh
-    # → docker run … exasol/nano:latest --provision-stacks mcp-server,json-tables
+    pipx install exasol-quickstart
+    exasol-quickstart --base nano-docker
+    # creates a Docker network, then:
+    #   exasol/nano:latest          → DB on 127.0.0.1:8563 (sys/exasol)
+    #   exasol/mcp-server:latest     → MCP on 127.0.0.1:4896, EXA_DSN=<db>:8563
     ```
 
-    Everything (DB, MCP, JSON Tables) runs on `localhost` inside the Nano runtime. This is the smallest, most integrated option, it sidesteps the two hardest constraints, and it is the natural path toward folding into official Nano. The proven [Docker Compose](../methods/docker-compose.md) bundle is the ship-today fallback.
+    All containers share one Docker network, so MCP reaches the DB by service name and — when JSON Tables is added as a sidecar — its ingest reverse-connection works **in-network**.
+
+!!! warning "Why not Nano's “stacks”? (not in the public image yet)"
+    Nano's **dev source** has an elegant `--provision-stacks` system — a built-in `mcp-server` stack plus `python`/`rust` stacks — that would let the whole bundle live inside **one** Nano container. **It is not in the published `exasol/nano:latest` yet.** Verified by testing: `--provision-stacks` / `--list-stacks` are silently appended to the DB parameters and ignored, and MCP never starts. So today the working method is the **sidecar/Compose** approach above; the single-container stack design is the cleaner **future** ([see below](#the-future-one-container-via-nano-stacks)).
 
 See [The components](components.md) for what each piece is.
 
 ---
 
-## Why this is the right answer for Nano
+## Why this works for Nano
 
-Unlike the [Personal bundle](exasol-bundle.md) — where the database lives on the host and the tools must reach *up* to it — **Nano is a container with a runtime extension system built in**. That changes the best method entirely, because Nano already does most of the work:
+Because **Nano is itself a container**, all the pieces can sit on one Docker network and reach the database over it — which sidesteps the two hardest constraints:
 
-- **MCP is already a first-class Nano stack.** `--provision-stacks mcp-server` makes Nano `pip install exasol-mcp-server` and serve it on `http://localhost:4896/mcp`, wired to the DB at `127.0.0.1:8563` with `sys`/`exasol`. Nothing to build.
-- **Nano ships the toolchain JSON Tables needs.** Its built-in **`python`** and **`rust`** stacks provide `python3` + `cargo`/`rustc` — exactly what JSON Tables requires at runtime (it shells out to `cargo run`, with no PyPI wheel). So JSON Tables can be a **custom stack** that depends on `python,rust`.
-- **One runtime, one network.** With all three inside Nano, every connection is `localhost`. That **eliminates the ingest reverse-connection caveat** (Exasol's HTTP transport connecting back to the JSON Tables client works trivially on the loopback) and removes any `host.docker.internal` plumbing.
+- **MCP ships as a published image.** `exasol/mcp-server:latest` runs with `EXA_DSN=<db>:8563`, `EXA_USER=sys`, `EXA_PASSWORD=exasol`, `EXA_SSL_CERT_VALIDATION=false`, `--host 0.0.0.0 --port 4896 --no-auth`. Nothing to build — just pull and run it next to Nano.
+- **Shared network kills the reverse-connection caveat.** JSON Tables' bulk ingest uses Exasol's HTTP transport (the DB connects *back* to the client). When the DB and the JSON Tables sidecar are on the **same Docker network**, that reverse connection resolves by service name — no `host.docker.internal`, no host/container boundary.
+- **The `pyexasol` conflict dissolves across containers.** MCP needs `pyexasol >=1,<2`; JSON Tables needs `>=2.2,<3`. In **separate containers** (separate images) they never share a Python environment.
 
 ```mermaid
 flowchart TB
-    subgraph nano["exasol/nano:latest — one container"]
+    subgraph net["shared Docker network"]
         direction TB
-        DB[("Exasol Core SQL engine<br/>127.0.0.1:8563 · sys/exasol · TLS")]
-        MCP["mcp-server stack · :4896"]
-        JT["json-tables stack · own venv"]
-        MCP -->|localhost| DB
-        JT -->|localhost| DB
+        DB[("exasol/nano<br/>database · 8563 · sys/exasol")]
+        MCP["exasol/mcp-server<br/>MCP · :4896"]
+        JT["json-tables sidecar<br/>Python + Rust"]
+        MCP -->|EXA_DSN=db:8563| DB
+        JT -->|ingest / query| DB
     end
 ```
 
-_Provisioned at first start via `--provision-stacks`. Exposed ports: **8563** (SQL) · **8443** (UI) · **4896** (MCP)._
+_Host ports: **8563** (SQL) · **8443** (UI) · **4896** (MCP). MCP + DB are published images; the JSON Tables sidecar is built from source (it has no wheel and needs a Rust toolchain)._
 
-### How the two hard constraints are handled
+### Why a one-command installer on top
 
-1. **The `pyexasol` conflict** (JSON Tables needs `>=2.2,<3`, MCP needs `>=1,<2`). Each stack installs into its **own environment**: the `mcp-server` stack uses its dedicated site-packages, and the `json-tables` stack installs into its **own venv**. Different interpreters/site-paths → no clash, inside one container.
-2. **JSON Tables' Rust-at-runtime coupling.** The `rust` stack provides `cargo` in the runtime, so the `json-tables` stack can build the ingest engine once at provision time (persisted in the `/exa` volume) and run it locally thereafter.
-
-### Why a script pipe on top
-
-Nano's `--provision-stacks` does the heavy lifting, but a thin [script-pipe installer](../methods/script-pipe.md) still adds what a bare `docker run` can't: a Docker prereq check, dropping the custom `json-tables` stack into the runtime's stack directory, port wiring, a `run-json-tables` helper, and an uninstaller. One line, any OS, ships today — for exactly the reasons in the [script-pipe write-up](../methods/script-pipe.md).
+A bare `docker run` / compose file can't do prerequisite checks, port wiring, health waits, helper scripts, or uninstall. A thin [script-pipe](../methods/script-pipe.md) / Python front door ([`exasol-quickstart`](https://github.com/krishna-exasol/exasol-quickstart)) adds all of that — one line, any OS with Docker, ships today.
 
 ---
 
 ## End-user requirements
 
-The defining advantage of this method: the host needs **only a container runtime**. Python, Rust, the MCP server, and JSON Tables are all installed *inside* Nano's runtime by the stacks — the host stays clean.
-
-**Must have before installing:**
+The host needs **only a container runtime** — the DB and MCP are pulled as published images; nothing else lands on the host.
 
 | Requirement | Why | Notes |
 |-------------|-----|-------|
-| **Docker or Podman** | Runs the Nano container + its stacks | Rootless OK; Docker Desktop on Windows/macOS works (Nano is a Linux container) |
-| A supported host OS | To run the container runtime | Linux, macOS, or Windows; Nano image is `amd64` + `arm64` |
-| **~2–4 GB free RAM** and a few GB disk | DB engine + the `/exa` data volume | `--shm-size` ≥ 512 MB (1 GB recommended) |
-| **Free ports** 8563, 8443, 4896 | SQL, Web UI, MCP endpoint | (+ 8888/8866 if the Jupyter stack is enabled) |
-| **Internet on first start** | Pull the image; stacks install apt/pip packages, build the Rust engine | Subsequent starts are offline-capable (cached in `/exa`) |
-| `curl`+`sh` (mac/Linux) or `irm`+PowerShell (Windows) | To run the one-line installer | Both shells are in-box |
+| **Docker or Podman** | Runs Nano + the MCP sidecar (+ JSON Tables sidecar) | Rootless OK; Docker Desktop on any OS (Nano is a Linux container) |
+| ~**2–4 GB RAM** + a few GB disk | DB engine + the `/exa` data volume | `--shm-size` ≥ 512 MB (1 GB recommended) |
+| **Free ports** 8563, 8443, 4896 | SQL, Web UI, MCP | |
+| **Internet on first run** | Pull `exasol/nano` + `exasol/mcp-server`; build the JSON Tables sidecar | DB + MCP are just pulls; JSON Tables compiles its Rust engine once |
 
-**Provisioned automatically — NOT host prerequisites:**
-
-- :material-language-python: Python 3, :material-language-rust: Rust/`cargo`, the **MCP server** (`exasol-mcp-server`), and **JSON Tables** (built from source) — all installed inside the Nano runtime by the `python` / `rust` / `mcp-server` / `json-tables` stacks.
-
-!!! note "First-start cost"
-    The first `--provision-stacks` run is noticeably slower: it pulls the image, installs apt/pip packages, and **compiles the JSON Tables Rust engine once**. It's then cached in the `/exa` volume, so later starts are fast.
+Not required on the host: Python, Rust, or the tools themselves — they live in the containers.
 
 ---
 
@@ -77,45 +69,40 @@ The defining advantage of this method: the host needs **only a container runtime
 
 | Method | Verdict | Why |
 |--------|---------|-----|
-| **Nano stacks + script pipe** *(recommended)* | ✅ | One container; reuses Nano's built-in MCP + rust/python; localhost everywhere → no reverse-connection or `host.docker.internal`; smallest; upgradeable to official Nano. |
-| **3-service [Docker Compose](../methods/docker-compose.md)** (nano image + mcp container + json-tables container) | ✅ Fallback | Proven and ships today (this is the `exasol-ai` bundle). Reverse-connection is fine because all three share one Docker network. But it **duplicates what Nano already provides** (a whole MCP container), maintains two extra Dockerfiles, and is heavier than enabling stacks. |
-| **Separate containers against a host DB** | ⚠️ | This is the *Personal* shape, not Nano. Reintroduces the **ingest reverse-connection caveat** across the host/container boundary. Unnecessary when the DB is itself a container. |
-| **Package managers** (Homebrew/Winget) | ⚠️ Later | Need registry approval *and* the user to already have the manager; can't orchestrate a multi-component DB runtime. Roadmap, not the critical path. |
-| **Bake tools onto the Nano image at build time** | ❌ | Nano's image is **distroless** — no shell to `RUN apt`/`pip`. Build-time baking is impossible; the runtime stack system is the *intended* extension mechanism. |
-| **Single mega-container from scratch** | ❌ | Re-implements what Nano already is, and you'd hit the `pyexasol` conflict in one env anyway. |
+| **Published containers on a shared network** *(recommended, works today)* | ✅ | Nano + `exasol/mcp-server` (pull, no build) + a JSON Tables sidecar; in-network so ingest + service discovery just work; deps isolated per container. This is what `exasol-quickstart --base nano-docker` ships. |
+| **Single container via Nano stacks** | ⏳ Not yet | The cleanest end-state, but **`--provision-stacks` isn't in the public `exasol/nano:latest`** (verified). Revisit when Nano ships the stack system — see below. |
+| **Separate containers against a *host* DB** | ⚠️ | That's the *Personal* shape, where the reverse-connection caveat bites across the host/container boundary. With Nano the DB is itself a container, so keep everything in-network. |
+| **Bake the tools onto the Nano image** | ❌ | Nano's image is **distroless** — no shell to `RUN apt`/`pip`. Build-time baking is impossible. |
+| **Package managers** (Homebrew/Winget) | ⚠️ Later | Need registry approval *and* the user to already have the manager; can't orchestrate a multi-container runtime. |
 
 ---
 
-## The custom `json-tables` stack (the one piece to build)
+## The future: one container via Nano stacks
 
-The `mcp-server` stack ships with Nano; JSON Tables needs a small stack authored once, following Nano's stack contract (`stack_dependencies`, `stack_apt_packages`, `stack_pip_packages`, `stack_provision`, a launch hook). Sketch:
+When the public Nano image ships the stack system, this bundle collapses from three containers to **one**: `--provision-stacks mcp-server,json-tables` would install the MCP server and a JSON Tables stack *inside* Nano's runtime, all on `localhost`. The MCP stack already exists in Nano's source; JSON Tables would be a small custom stack:
 
 ```sh
-# ~/.exanano/provision/stacks/json-tables.sh   (native)
-#   or mounted into the runtime's stack dir for Docker
+# a future Nano stack — not usable until the public image supports --provision-stacks
 stack_name()         { echo json-tables; }
-stack_dependencies() { echo "python rust"; }          # cargo + python3 from built-in stacks
-stack_apt_packages() { echo git; echo build-essential; }
+stack_dependencies() { echo "python rust"; }      # built-in stacks provide cargo + python3
 stack_provision() {
-  # isolate from the mcp-server stack's pyexasol<2
-  python3 -m venv /opt/exanano/json-tables/venv
-  . /opt/exanano/json-tables/venv/bin/activate
-  git clone https://github.com/exasol-labs/exasol-json-tables /opt/exanano/json-tables/src
-  pip install /opt/exanano/json-tables/src
-  cargo build --release \
-    --manifest-path /opt/exanano/json-tables/src/crates/json_tables_ingest/Cargo.toml
+  python3 -m venv /opt/json-tables/venv            # isolate from the mcp-server stack's pyexasol<2
+  . /opt/json-tables/venv/bin/activate
+  git clone https://github.com/exasol-labs/exasol-json-tables /opt/json-tables/src
+  pip install /opt/json-tables/src
+  cargo build --release --manifest-path /opt/json-tables/src/crates/json_tables_ingest/Cargo.toml
 }
 ```
 
-Then ingest runs in-runtime against `127.0.0.1:8563` — no reverse-connection problem. Once validated, this stack is a candidate to contribute upstream as an official Nano stack, at which point the bundle collapses to `--provision-stacks mcp-server,json-tables` with nothing custom at all.
+Until then, the sidecar method is the recommendation.
 
-!!! note "Validation status"
-    The `mcp-server` stack is built into Nano and proven. The `json-tables` stack above is the part to author and test on a real Nano runtime (first provision compiles the Rust engine — slow once, then cached in `/exa`). Until that's validated, the **[Docker Compose `exasol-ai` bundle](exasol-bundle.md) is the working, ship-today fallback**.
+!!! note "Status"
+    **Tested:** `exasol-quickstart --base nano-docker` (0.1.1) brings up Nano + MCP via published images — MCP reports healthy. **Next:** wiring the **JSON Tables sidecar** into the same command (`--with json-tables`). The single-container **stack** path waits on the public Nano image.
 
 ---
 
 ## In one sentence
 
-Because **Nano already carries an MCP stack and the rust/python toolchains**, the recommended way to join Nano + JSON Tables + MCP is to **extend Nano with stacks** (built-in `mcp-server` + a custom `json-tables`) behind a one-line script-pipe installer — one container, no reverse-connection or dependency-conflict workarounds, and a clean path into official Nano.
+Because **Nano is a container**, the way to join Nano + JSON Tables + MCP that works *today* is **published containers on a shared Docker network** — Nano + `exasol/mcp-server` + a JSON Tables sidecar — behind one installer command; the single-container “stacks” design is the cleaner future once it lands in the public image.
 
-**Related:** [Script pipe](../methods/script-pipe.md) · [Docker Compose](../methods/docker-compose.md) · [The components](components.md) · [Exasol bundle case study](exasol-bundle.md)
+**Related:** [Recommended approach](recommended-approach.md) · [The components](components.md) · [Docker Compose](../methods/docker-compose.md) · [Personal + JSON Tables + MCP](personal-jsontables-mcp.md)

@@ -43,7 +43,7 @@ class ExaBundle < Formula
 
   # pip-installed MCP server pinned as a vendored resource
   resource "exasol-mcp-server" do
-    url "https://files.pythonhosted.org/.../exasol_mcp_server-0.4.1.tar.gz"
+    url "https://files.pythonhosted.org/.../exasol_mcp_server-1.10.1.tar.gz"
     sha256 "PUT_REAL_SHA256_HERE"
   end
 

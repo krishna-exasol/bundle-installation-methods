@@ -53,8 +53,8 @@ After it comes up: database on `127.0.0.1:8563` (`sys` / `exasol`), MCP at `http
 !!! info "Release status"
     | Version | What it does |
     |---------|--------------|
-    | **`0.1.0`** *(current)* | Brings up **Exasol Nano + MCP server via Docker** on any OS (`--base nano-docker`); OS detection, base routing, `--dry-run`. |
-    | **next** | The per-OS **native bases** — Exasol **Personal** on macOS, Nano **`.run`** on Linux (no Docker) — plus **JSON Tables** (`--with json-tables`), exactly as the decision graph below describes. |
+    | **`0.1.1`** *(current)* | Brings up **Exasol Nano (DB) + the official `exasol/mcp-server` image as a sidecar**, via Docker, on any OS (`--base nano-docker`) — tested end-to-end. Plus OS detection, base routing, `--dry-run`. |
+    | **next** | **JSON Tables** as a sidecar (`--with json-tables`), then the per-OS **native bases** — Exasol **Personal** on macOS, Nano **`.run`** on Linux (no Docker) — per the decision graph below. |
 
     It's the evolution of the `exasol-ai` and `exasol-personal-ai` bundles into one lower-prerequisite front door. Future releases publish to PyPI automatically via GitHub Releases (Trusted Publishing).
 
@@ -66,17 +66,19 @@ After it comes up: database on `127.0.0.1:8563` (`sys` / `exasol`), MCP at `http
 flowchart TD
     Start(["One command:<br/>pipx run exasol-quickstart"]) --> OS{"Which OS?"}
 
-    OS -->|"macOS (Apple Silicon)"| Mac["Base: Exasol Personal local<br/>native VM — no Docker"]
-    OS -->|"Linux"| Lin["Base: Exasol Nano<br/>native .run — no Docker"]
-    OS -->|"Windows"| Win["Base: Exasol Nano<br/>via Docker Desktop"]
+    OS -->|"macOS (Apple Silicon)"| Mac["Base: Exasol Personal local<br/>native VM — no Docker  (roadmap)"]
+    OS -->|"Linux"| Lin["Base: Exasol Nano<br/>native .run — no Docker  (roadmap)"]
+    OS -->|"Windows / any with Docker"| Win["Base: Exasol Nano<br/>via Docker  (ships today)"]
 
-    Mac --> MacAdd["Add-ons on host:<br/>MCP via pipx · JSON Tables venv + Rust"]
-    Lin --> Stacks["Add-ons as Nano stacks:<br/>--provision-stacks mcp-server,json-tables"]
-    Win --> Stacks
+    Mac --> Host["Add-ons as host processes:<br/>MCP via pipx · JSON Tables venv + Rust"]
+    Lin --> Host
+    Win --> Side["Add-ons as sidecar containers:<br/>exasol/mcp-server (+ JSON Tables)"]
 
-    MacAdd --> Done(["Ready: DB on localhost<br/>+ MCP :4896 + JSON Tables"])
-    Stacks --> Done
+    Host --> Done(["Ready: DB + MCP :4896<br/>(+ JSON Tables)"])
+    Side --> Done
 ```
+
+> **Ships today:** the **Windows / any-with-Docker** route — `exasol-quickstart --base nano-docker` brings up Nano + the `exasol/mcp-server` sidecar (tested). The **no-Docker native bases** (Personal on macOS, Nano `.run` on Linux, with host-process add-ons) are the roadmap.
 
 **Why the base differs by OS** — the Exasol engine is Linux-native, so the *no-Docker* local option is different on each platform:
 
@@ -88,21 +90,26 @@ flowchart TD
 
 ## Per-OS recommendation — "this is the way"
 
-| User's OS | Recommended base | How the base installs | How add-ons install | Docker needed? | Host needs |
-|-----------|------------------|-----------------------|---------------------|----------------|------------|
-| **macOS** (Apple Silicon) | **Exasol Personal** (local) | `exasol install local` (native VM) | host: `pipx` MCP + venv JSON Tables | ❌ No | Python + Rust (Xcode CLT) |
-| **Linux** | **Exasol Nano** (native `.run`) | native installer | **Nano stacks** | ❌ No | nothing beyond the installer¹ |
-| **Windows** | **Exasol Nano** (Docker) | `docker run exasol/nano` | **Nano stacks** | ✅ Yes (only local option) | Docker Desktop |
+| User's OS | Recommended base | How add-ons install | Docker? | Host needs | Status |
+|-----------|------------------|---------------------|---------|------------|--------|
+| **Windows / any with Docker** | **Exasol Nano** (Docker) | **sidecar containers** — `exasol/mcp-server` (+ JSON Tables) | ✅ Yes | Docker only | **ships today** |
+| **macOS** (Apple Silicon) | **Exasol Personal** (local VM) | host processes — `pipx` MCP + venv JSON Tables | ❌ No | Python + Rust (Xcode CLT) | roadmap |
+| **Linux** | **Exasol Nano** (native `.run`) | host processes — `pipx` MCP + venv JSON Tables | ❌ No | Python + Rust | roadmap |
 
-¹ On Nano, the `python` / `rust` / `mcp-server` / `json-tables` stacks self-provision inside the runtime — the host doesn't need Python or Rust.
+The shipping path uses **published images** (`exasol/nano:latest` + `exasol/mcp-server:latest`) on a shared Docker network — no host Python/Rust needed. The no-Docker native routes run the add-ons as host processes next to the native DB.
 
 > **No-Docker Windows alternative:** point the same command at a **cloud** Exasol Personal deployment (needs a provider account). Good for browsing/querying, but JSON Tables *ingest* can't reverse-connect to a laptop from the cloud — see the [Personal case study](personal-jsontables-mcp.md#the-one-constraint-that-decides-everything).
 
 ---
 
-## The unifying principle: **add-ons as "stacks"**
+## The unifying principle: **add-ons as isolated units**
 
-The reason this scales is that the **unit of bundling is an add-on** — and Exasol Nano already formalizes exactly that with its `--provision-stacks` system (a built-in `mcp-server` stack, plus `python`/`rust` stacks). The front-door command just **installs the base and turns on the requested add-ons**.
+The reason this scales is that the **unit of bundling is an add-on**, and each add-on is an **isolated unit** wired to the base:
+
+- **Today** — a **sidecar container** (when the base is Nano, in Docker) or an **isolated host environment** (`pipx`/venv, when the base is Personal on the host).
+- **Tomorrow** — once the public Nano image ships the `--provision-stacks` system, an add-on becomes a **stack inside the Nano container** (the `mcp-server` stack already exists in Nano's source). Same idea, even simpler.
+
+Either way the front-door command just **installs the base and turns on the requested add-ons**.
 
 ```mermaid
 flowchart LR
@@ -121,8 +128,8 @@ flowchart LR
 
 **Why this is reliable and scalable:**
 
-- **Reliable** — each add-on lives in its own environment (a Nano stack, or an isolated host venv), so the `pyexasol` conflict (JSON Tables `>=2.2,<3` vs MCP `>=1,<2`) never bites; and because add-ons sit next to the DB on `localhost`, JSON Tables' reverse-connection ingest just works.
-- **Scalable** — a *new* add-on later (dbt, a notebook server, another connector) is **just one more stack/recipe**. The base, the front door, and the user's one command don't change.
+- **Reliable** — each add-on lives in its own environment (a sidecar container, or an isolated host venv), so the `pyexasol` conflict (JSON Tables `>=2.2,<3` vs MCP `>=1,<2`) never bites; and because add-ons sit next to the DB (a shared Docker network, or `localhost`), JSON Tables' reverse-connection ingest just works.
+- **Scalable** — a *new* add-on later (dbt, a notebook server, another connector) is **just one more sidecar/recipe**. The base, the front door, and the user's one command don't change.
 - **Strategic end-state** — Personal's local DB is Nano under the hood, so the cleanest future is to **expose the same stack model on Personal too**. Then "add-on = stack" on *every* base and OS, behind the same single command.
 
 ---
@@ -143,9 +150,9 @@ After the one command:
 
 | Bundle | What you get | Best for | Pros | Cons |
 |--------|--------------|----------|------|------|
-| **Nano + MCP** | DB + LLM access | Fast "talk to my DB" demo | Tiny; MCP is a built-in stack; nothing on the host but Docker | Docker on Windows; no JSON ingest |
-| **Nano + JSON Tables** | DB + JSON→SQL | JSON analytics demo | Rust+Python provided by stacks; ingest works in-runtime | Docker on Windows; no LLM layer |
-| **Nano + MCP + JSON Tables** | DB + LLM + JSON | The complete "try Exasol for AI" | One runtime; everything on localhost; unified stacks | Docker on Windows; first run compiles the Rust engine once |
+| **Nano + MCP** *(ships today)* | DB + LLM access | Fast "talk to my DB" demo | Two published images (no build); nothing on the host but Docker | Docker required; no JSON ingest |
+| **Nano + JSON Tables** *(next)* | DB + JSON→SQL | JSON analytics demo | In-network ingest (shared Docker network); deps isolated | Docker required; JSON Tables sidecar builds from source |
+| **Nano + MCP + JSON Tables** *(next)* | DB + LLM + JSON | The complete "try Exasol for AI" | In-network; each tool its own container; no host deps | Docker required; first run builds the JSON Tables sidecar once |
 | **Personal + MCP** | Real Personal DB + LLM | Mac users who want *Personal* specifically | No Docker (native VM); real Personal experience | macOS-only; tools run as host processes |
 | **Personal + MCP + JSON Tables** | Personal + LLM + JSON | Full Mac experience | No Docker; ingest works (host localhost) | macOS-only; host needs Python + Rust |
 
@@ -163,8 +170,8 @@ After the one command:
 | OS | Extra prerequisites | Provided automatically |
 |----|--------------------|------------------------|
 | **macOS** (Apple Silicon) | Xcode Command Line Tools (compiler + `git`); ≥ 8 GB RAM | the `exasol` launcher, the local DB, MCP (pipx), JSON Tables venv + Rust (rustup) |
-| **Linux** | none beyond the Nano installer | DB, Python, Rust, MCP, JSON Tables — all inside Nano via stacks |
-| **Windows** | **Docker Desktop** running | DB, Python, Rust, MCP, JSON Tables — all inside Nano via stacks |
+| **Windows / any with Docker** *(ships today)* | **Docker** running | DB + MCP as published images (`exasol/nano` + `exasol/mcp-server`) on a shared network; JSON Tables sidecar built from source |
+| **Linux** *(roadmap, no Docker)* | the Nano `.run`; Python + Rust for the add-ons | DB native; MCP via `pipx`; JSON Tables via venv |
 
 **The one irreducible add-on requirement:** JSON Tables needs a **Rust toolchain** at runtime (it has no PyPI wheel and shells out to `cargo`). This is *provided for the user* — inside Nano by the `rust` stack, or via `rustup` on macOS. The clean long-term fix is a prebuilt JSON Tables wheel upstream, after which even that disappears.
 

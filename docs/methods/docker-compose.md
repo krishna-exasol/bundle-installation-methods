@@ -38,16 +38,20 @@ services:
     restart: unless-stopped
 
   mcp-server:                        # MCP server — only starts once the DB is healthy
-    image: example/exasol-mcp@sha256:3a7d11ef...90
+    image: exasol/mcp-server:latest  # the official published image
     depends_on:
       exasol-nano:
         condition: service_healthy
-    ports: ["8080:8080"]
+    ports: ["4896:4896"]
     environment:
-      EXASOL_DSN: "exasol-nano:8563"  # reaches the DB by service name over the compose network
+      EXA_DSN: "exasol-nano:8563"    # reaches the DB by service name over the compose network
+      EXA_USER: "sys"
+      EXA_PASSWORD: ${EXASOL_PASSWORD:?set in .env}
+      EXA_SSL_CERT_VALIDATION: "false"
+    command: ["--host", "0.0.0.0", "--port", "4896", "--no-auth"]
     restart: unless-stopped
 
-  json-tables:                       # json-tables data component
+  json-tables:                       # json-tables data component (built from source: Python + Rust)
     image: example/json-tables@sha256:b21c44aa...ff
     depends_on:
       exasol-nano:

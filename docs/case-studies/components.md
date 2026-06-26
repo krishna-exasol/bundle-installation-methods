@@ -18,8 +18,8 @@ The [Exasol bundle](exasol-bundle.md) combines a **database** with two companion
 - **Run:** `docker run --rm -it --shm-size=512mb -p 8563:8563 -v exanano-data:/exa exasol/nano:latest`
 - **Connect:** `127.0.0.1:8563` (TLS, self-signed cert), user `sys` / password `exasol`; Web UI on `8443`; data persists in the `/exa` volume.
 - **Distroless image:** the image itself contains only the `/controller` entrypoint + the DB engine — no shell, apt, or python. The runtime environment is materialized at first start by `/controller`, which is why you can't bake tools onto the image at build time.
-- **Stack system (important):** Nano can provision runtime "stacks" with `--provision-stacks <list>` (or `EXANANO_PROVISION_STACKS=...`). Built-in stacks include **python**, **java**, **rust**, **jupyter**, **marimo**, and a first-class **`mcp-server`** stack that `pip install`s `exasol-mcp-server` and serves it on **4896**. Custom stacks can be dropped into `~/.exanano/provision/stacks/`.
-- **Why it matters here:** Nano already covers the MCP half natively and ships the **rust + python** toolchain JSON Tables needs — so the whole bundle can potentially live inside Nano as stacks.
+- **Stack system (dev-source / roadmap — _not in the public image yet_):** Nano's source has a `--provision-stacks <list>` system with built-in **python**, **java**, **rust**, **jupyter**, **marimo**, and `mcp-server` stacks. **The published `exasol/nano:latest` does not support it yet** — verified by testing: the flag is silently appended to the DB parameters and ignored. So treat stacks as a promising *future*; today you extend Nano with **sidecar containers** (see the [Nano case study](nano-jsontables-mcp.md)).
+- **Why it matters here:** *once stacks ship in the public image*, the whole bundle could live inside a single Nano container. Until then, MCP runs as the published `exasol/mcp-server:latest` sidecar next to Nano.
 
 Source: [hub.docker.com/r/exasol/nano](https://hub.docker.com/r/exasol/nano)
 

@@ -30,11 +30,11 @@ exasol-mcp-server --help
 pipx install exasol-mcp-server
 pipx upgrade exasol-mcp-server
 pipx uninstall exasol-mcp-server
-pipx install "exasol-mcp-server==0.4.1"          # pin a version
+pipx install "exasol-mcp-server==1.10.1"          # pin a version
 
 # uvx — run ephemerally, nothing left installed
 uvx exasol-mcp-server --help
-uvx exasol-mcp-server@0.4.1 --help               # pin a version for this run
+uvx exasol-mcp-server@1.10.1 --help               # pin a version for this run
 uv tool install exasol-mcp-server                # persistent equivalent of pipx
 
 # The json-tables Python+Rust CLI: pip/pipx work only if it ships a wheel

@@ -97,7 +97,7 @@ The trade-off vs the [Nano method](nano-jsontables-mcp.md) is inverted: here you
 | **Host-co-located tools + script pipe** *(recommended)* | ✅ | Everything on `localhost` → ingest works; `pipx`/venv resolves the dependency conflict cleanly; no Docker or `host.docker.internal` needed. |
 | **Host DB + two containers** (`host.docker.internal`) | ⚠️ Works, with a caveat | This is the existing `exasol-personal-ai` bundle. MCP is fine, but **JSON Tables ingest hits the reverse-connection problem** across the host/container boundary — so that bundle documents a *host-mode fallback* for ingest. The recommended method simply makes host-mode the **default** for JSON Tables. |
 | **Hybrid: MCP container + JSON Tables on host** | ✅ Acceptable | Valid middle ground — MCP only needs outbound, so a container is fine; JSON Tables stays on the host where ingest works. Slightly less uniform than all-host. |
-| **Native Nano stacks** | ❌ N/A | Personal isn't Nano and isn't a container, so there's no runtime stack system to extend. That's the [Nano case study](nano-jsontables-mcp.md), not this one. |
+| **Containerize the Nano way** | ❌ N/A | Personal isn't Nano and isn't a container — its DB is on the host. So the [Nano sidecar/Compose approach](nano-jsontables-mcp.md) doesn't apply here. (And Nano's own "stacks" aren't in the public image yet anyway.) |
 | **Cloud Personal + tools** | ⚠️ Limited | For a cloud DB, `wrap`/query/MCP work over the remote DSN, but **ingest's reverse connection generally can't reach your laptop**. Run JSON Tables on a host the DB can reach, or use **local** Personal for ingest-heavy work. |
 
 ---
@@ -110,7 +110,7 @@ The existing `exasol-personal-ai` bundle implements the **two-container** shape 
 
 | | Database is… | Best method | Host must have |
 |---|---|---|---|
-| **[Nano](nano-jsontables-mcp.md)** | a container with a stack system | extend Nano with **stacks** (built-in `mcp-server` + custom `json-tables`) | **Docker/Podman** only (Python+Rust live inside Nano) |
+| **[Nano](nano-jsontables-mcp.md)** | a container | **sidecar containers** on a shared network — Nano + `exasol/mcp-server` (+ JSON Tables) | **Docker/Podman** only (the tools are images, not host installs) |
 | **Personal** *(this page)* | a host launcher | co-locate tools **on the host** (pipx/venv) | **Python + Rust** on the host (no Docker); macOS Apple-Silicon |
 
 Both reduce to the same rule: **put JSON Tables wherever it shares `localhost` with the database** — because of the HTTP-transport reverse connection. MCP, being outbound-only, is flexible either way.
