@@ -20,7 +20,7 @@
     - **What you get** — an Exasol **database** (`:8563`), an **MCP server** (`:4896/mcp`) for LLM access, and **JSON Tables** (JSON → SQL).
     - **Only universal prerequisite** — Python 3.9+ with `pipx` (or `uv`). **Docker is per-OS, not universal.**
     - **How it runs** — chosen automatically per OS: **containers** where Docker is present (Windows / Linux / any-with-Docker — *fully tested, including ingest*), or a **native VM** via Exasol Personal on macOS (*experimental*).
-    - **Where it lives** — published on PyPI as [`exasol-quickstart`](https://pypi.org/project/exasol-quickstart/) (`0.3.8`), built and released via Trusted Publishing.
+    - **Where it lives** — published on PyPI as [`exasol-quickstart`](https://pypi.org/project/exasol-quickstart/) (`0.3.12`), built and released via Trusted Publishing.
 
 ## The goal
 
@@ -76,50 +76,48 @@ The only universal prerequisite is **Python 3.9+ with `pipx`** (or `uv`). Once t
 !!! info "Release status"
     | Version | What it does |
     |---------|--------------|
-    | **`0.3.8`** *(current)* | The bare command **auto-selects per OS** and brings up the **full bundle — Nano (DB) + `exasol/mcp-server` + JSON Tables** — on any OS with Docker. **Tested end-to-end, including ingest.** Try via `pipx run` / `uvx`, or keep via `pipx install`. |
+    | **`0.3.12`** *(current)* | The bare command **auto-selects per OS** and brings up the **full bundle — Nano (DB) + `exasol/mcp-server` + JSON Tables** — on any OS with Docker. **Tested end-to-end, including ingest.** Try via `pipx run` / `uvx`, or keep via `pipx install`. |
     | next | The **no-Docker native bases** — Exasol **Personal** on macOS, Nano **`.run`** on Linux — are wired in and chosen when Docker is absent; the macOS path is **experimental, not yet validated**. |
 
     It's the evolution of the `exasol-ai` and `exasol-personal-ai` bundles into one lower-prerequisite front door. Releases publish to PyPI automatically via GitHub Releases (Trusted Publishing). The only universal prerequisite is **Python 3.9+ with `pipx`**.
 
 ---
 
-## How it adapts per OS — the decision graph
+## How it decides — the decision graph
+
+The choice is driven by **Docker availability**, not by OS. The Docker bundle works on **Windows, Linux, and macOS** alike (tested). Only the *no-Docker* native routes differ by OS.
 
 ```mermaid
 flowchart TD
-    Start(["One command:<br/>pipx run exasol-quickstart"]) --> OS{"Which OS?"}
+    Start(["One command:<br/>pipx run exasol-quickstart"]) --> D{"Is Docker available?"}
 
-    OS -->|"macOS (Apple Silicon)"| Mac["Base: Exasol Personal local<br/>native VM — no Docker  (roadmap)"]
-    OS -->|"Linux"| Lin["Base: Exasol Nano<br/>native .run — no Docker  (roadmap)"]
-    OS -->|"Windows / any with Docker"| Win["Base: Exasol Nano<br/>via Docker  (ships today)"]
+    D -->|"Yes — Windows · Linux · macOS"| Docker["Exasol Nano + MCP + JSON Tables<br/>as containers on a shared network"]:::ok
+    D -->|"No — macOS (Apple Silicon)"| Mac["Exasol Personal — native VM, no Docker<br/>add-ons via pipx + venv"]:::exp
+    D -->|"No — Linux / Windows"| Need["Start Docker — it's the path today<br/>(native Linux .run is on the roadmap)"]:::todo
 
-    Mac --> Host["Add-ons as host processes:<br/>MCP via pipx · JSON Tables venv + Rust"]
-    Lin --> Host
-    Win --> Side["Add-ons as sidecar containers:<br/>exasol/mcp-server (+ JSON Tables)"]
-
-    Host --> Done(["Ready: DB + MCP :4896<br/>(+ JSON Tables)"])
-    Side --> Done
+    Docker --> Done(["Ready: DB + MCP :4896 + JSON Tables"])
+    Mac --> Done
+    classDef ok fill:#1f7a5a,stroke:#3fb950,color:#fff;
+    classDef exp fill:#946200,stroke:#d29922,color:#fff;
+    classDef todo fill:#1c2330,stroke:#58a6ff,color:#fff;
 ```
 
-> **Ships today:** the **any-with-Docker** route — the bare `exasol-quickstart` brings up Nano + the `exasol/mcp-server` sidecar + **JSON Tables** (tested end-to-end, including ingest). The **no-Docker native bases** (Personal on macOS, Nano `.run` on Linux, with host-process add-ons) are selected when Docker is absent; the macOS path is experimental.
+> **Works today, on every OS with Docker** — the bare `exasol-quickstart` brings up Nano + the `exasol/mcp-server` sidecar + **JSON Tables** (tested end-to-end, including ingest). **Without** Docker, macOS falls back to a native **Exasol Personal** VM (*experimental*); on Linux/Windows, Docker is the path today (a native Linux `.run` is on the roadmap).
 
-**Why the base differs by OS** — the Exasol engine is Linux-native, so the *no-Docker* local option is different on each platform:
-
-- **macOS (Apple Silicon)** → **Exasol Personal local** runs the DB in a native VM, no Docker.
-- **Linux** → **Exasol Nano** installs natively from its `.run`, no Docker.
-- **Windows** → there is **no native Windows engine**, so a local DB means **Nano in Docker** (Docker Desktop / WSL2). The honest exception to "no Docker."
+**Why the Docker path is the default everywhere** — the Exasol engine is Linux-native, so running it in a container is the one approach that behaves identically on Windows, Linux, and macOS. The no-Docker alternatives are OS-specific and less mature.
 
 ---
 
-## Per-OS recommendation — "this is the way"
+## What runs, by situation
 
-| User's OS | Recommended base | How add-ons install | Docker? | Host needs | Status |
-|-----------|------------------|---------------------|---------|------------|--------|
-| **Windows / any with Docker** | **Exasol Nano** (Docker) | **sidecar containers** — `exasol/mcp-server` (+ JSON Tables) | ✅ Yes | Docker only | **ships today** |
-| **macOS** (Apple Silicon) | **Exasol Personal** (local VM) | host processes — `pipx` MCP + venv JSON Tables | ❌ No | Python + Rust (Xcode CLT) | roadmap |
-| **Linux** | **Exasol Nano** (native `.run`) | host processes — `pipx` MCP + venv JSON Tables | ❌ No | Python + Rust | roadmap |
+| Situation | What runs | Docker? | Status |
+|-----------|-----------|---------|--------|
+| **Any OS with Docker** (Windows · Linux · macOS) | Exasol Nano + `exasol/mcp-server` + JSON Tables, as **sidecar containers** | ✅ Yes | ✅ **tested today** |
+| **macOS (Apple Silicon), no Docker** | **Exasol Personal** native VM; add-ons via `pipx` + venv on the host | ❌ No | 🧪 experimental |
+| **Linux, no Docker** | Exasol Nano native `.run`; add-ons as host processes | ❌ No | 🛣️ roadmap |
+| **Windows, no Docker** | — (no native Windows engine) | — | use Docker, or a cloud DB |
 
-The shipping path uses **published images** (`exasol/nano:latest` + `exasol/mcp-server:latest`) on a shared Docker network — no host Python/Rust needed. The no-Docker native routes run the add-ons as host processes next to the native DB.
+The Docker path uses **published images** (`exasol/nano:latest` + `exasol/mcp-server:latest`) on a shared network — no host Python/Rust needed. It is what `exasol-quickstart` auto-selects whenever Docker is present, on any OS.
 
 > **No-Docker Windows alternative:** point the same command at a **cloud** Exasol Personal deployment (needs a provider account). Good for browsing/querying, but JSON Tables *ingest* can't reverse-connect to a laptop from the cloud — see the [Personal case study](personal-jsontables-mcp.md#the-one-constraint-that-decides-everything).
 
@@ -185,18 +183,18 @@ After the one command:
 
 **Universal (all OSes):**
 
-- **Python 3.10+** — to launch the front door (and, on macOS, to host the add-ons). The data-scientist audience reliably has it.
+- **Python 3.9+ with `pipx`** (or `uv`) — to launch the front door. The data-scientist audience reliably has it.
 - **Internet** on first run; ~**4 GB free RAM** and a few GB disk.
 
-**Per-OS extras:**
+**By route:**
 
-| OS | Extra prerequisites | Provided automatically |
-|----|--------------------|------------------------|
-| **macOS** (Apple Silicon) | Xcode Command Line Tools (compiler + `git`); ≥ 8 GB RAM | the `exasol` launcher, the local DB, MCP (pipx), JSON Tables venv + Rust (rustup) |
-| **Windows / any with Docker** *(ships today)* | **Docker** running | DB + MCP as published images (`exasol/nano` + `exasol/mcp-server`) on a shared network; JSON Tables sidecar built from source |
-| **Linux** *(roadmap, no Docker)* | the Nano `.run`; Python + Rust for the add-ons | DB native; MCP via `pipx`; JSON Tables via venv |
+| Route | Extra prerequisites | Provided automatically | Status |
+|-------|--------------------|------------------------|--------|
+| **Docker** (any OS: Windows / Linux / macOS) | **Docker** installed and running | DB + MCP as published images on a shared network; JSON Tables sidecar built from source — **no host Python/Rust needed** | ✅ tested |
+| **macOS native** (no Docker) | Xcode Command Line Tools (compiler + `git`); ≥ 8 GB RAM | the `exasol` launcher + local DB, MCP via `pipx`, JSON Tables venv + Rust (rustup) | 🧪 experimental |
+| **Linux native** (no Docker) | the Nano `.run`; Python + Rust for the add-ons | DB native; MCP via `pipx`; JSON Tables via venv | 🛣️ roadmap |
 
-**The one irreducible add-on requirement:** JSON Tables needs a **Rust toolchain** at runtime (it has no PyPI wheel and shells out to `cargo`). This is *provided for the user* — inside Nano by the `rust` stack, or via `rustup` on macOS. The clean long-term fix is a prebuilt JSON Tables wheel upstream, after which even that disappears.
+**The one irreducible add-on requirement:** JSON Tables needs a **Rust toolchain** at runtime (it has no PyPI wheel and shells out to `cargo`). On the Docker route this is *fully inside the container* (nothing on the host); on the native routes it's installed via `rustup`. The clean long-term fix is a prebuilt JSON Tables wheel upstream, after which even that disappears.
 
 ---
 
